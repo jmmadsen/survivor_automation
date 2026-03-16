@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/templ/Downloads/**)",
+      "Bash(python:*)",
+      "Bash(pip show:*)",
+      "Bash(pip3 show:*)",
+      "WebFetch(domain:site.api.espn.com)",
+      "WebFetch(domain:docs.gspread.org)"
+    ]
+  }
+}
