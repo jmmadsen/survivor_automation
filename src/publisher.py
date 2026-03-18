@@ -50,7 +50,7 @@ def publish_picks(
 
     # Write values then formatting to the public spreadsheet
     public_client.clear_and_write(SHEET_PUBLIC, all_rows, create_if_missing=True)
-    formats = _build_format_requests(players_sorted, display_days, visible_result_days)
+    formats = _build_format_requests(players_sorted, display_days, visible_result_days, losers_by_day)
     public_client.batch_format_cells(SHEET_PUBLIC, formats)
 
     alive_count = sum(1 for p in players_sorted if p.still_alive)

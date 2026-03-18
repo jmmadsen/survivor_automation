@@ -21,6 +21,7 @@ from src.config import GAME_DAYS
 from src.results_updater import detect_days_with_results, update_results_for_day
 from src.formatted_builder import build_formatted_sheet
 from src.publisher import publish_picks, reset_public_sheet
+from src.roster_sync import populate_master_roster
 from src.sheets_client import SheetsClient
 
 
@@ -61,13 +62,13 @@ def cmd_update_results(args, private_client: SheetsClient) -> None:
 def cmd_update_formatted(args, private_client: SheetsClient) -> None:
     if args.days_with_results:
         days = args.days_with_results
+        print(f"Using specified days: {', '.join(days)}")
     else:
         days = detect_days_with_results(private_client)
-        if not days:
-            print("No completed game days detected in Teams & Results sheet. "
-                  "Run 'update-results' first, or use --days-with-results to specify manually.")
-            return
-        print(f"Auto-detected completed days: {', '.join(days)}")
+        if days:
+            print(f"Auto-detected completed days: {', '.join(days)}")
+        else:
+            print("No completed game days detected yet — all picks will appear yellow (pending).")
 
     if getattr(args, "dry_run", False):
         _dry_run_formatted(private_client, days)
@@ -197,6 +198,10 @@ def cmd_publish(args, private_client: SheetsClient, public_client: SheetsClient 
     publish_picks(private_client, public_client, days, through_day=through_day)
 
 
+def cmd_populate_master(args, private_client: SheetsClient) -> None:
+    populate_master_roster(private_client)
+
+
 def cmd_reset_public(args, private_client: SheetsClient, public_client: SheetsClient | None) -> None:
     if public_client is None:
         print("ERROR: PUBLIC_SPREADSHEET_ID is not set in .env. Cannot reset public sheet.")
@@ -210,10 +215,10 @@ def cmd_run_all(args, private_client: SheetsClient) -> None:
 
     print(f"\n--- Step 2: Rebuilding Formatted sheet ---")
     days = detect_days_with_results(private_client)
-    if not days:
-        print("No completed days found after update — check Teams & Results sheet.")
-        return
-    print(f"Completed days: {', '.join(days)}")
+    if days:
+        print(f"Completed days: {', '.join(days)}")
+    else:
+        print(f"No final results found for {args.day} yet — picks will appear yellow (pending).")
     build_formatted_sheet(private_client, days)
     print("\nDone. Run 'python main.py publish' when ready to share picks with participants.")
 
@@ -275,6 +280,12 @@ def main() -> None:
         help=f"Game day to update. One of: {', '.join(GAME_DAYS)}",
     )
 
+    # populate-master
+    sub.add_parser(
+        "populate-master",
+        help="Pull unique names from Signup Tracker and add them to Master sheet with email formulas",
+    )
+
     # reset-public
     sub.add_parser(
         "reset-public",
@@ -303,6 +314,8 @@ def main() -> None:
         cmd_publish(args, private_client, public_client)
     elif args.command == "run-all":
         cmd_run_all(args, private_client)
+    elif args.command == "populate-master":
+        cmd_populate_master(args, private_client)
     elif args.command == "reset-public":
         cmd_reset_public(args, private_client, public_client)
     elif args.command == "test-connection":

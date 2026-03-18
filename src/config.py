@@ -4,6 +4,7 @@ SHEET_PICKS = "Picks"
 SHEET_TEAMS_RESULTS = "Teams & Results"
 SHEET_FORMATTED = "Formatted"
 SHEET_PUBLIC = "Public Picks"
+SHEET_SIGNUP = "Signup Tracker"
 
 # Game days in tournament order
 GAME_DAYS = [

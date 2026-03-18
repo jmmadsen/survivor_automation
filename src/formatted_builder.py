@@ -49,7 +49,7 @@ def build_formatted_sheet(
 
     client.clear_and_write(target_tab, all_rows, create_if_missing=create_if_missing)
 
-    formats = _build_format_requests(players_sorted, display_days, game_days_with_results)
+    formats = _build_format_requests(players_sorted, display_days, game_days_with_results, losers_by_day)
     client.batch_format_cells(target_tab, formats)
 
     alive_count = sum(1 for p in players_sorted if p.still_alive)
@@ -181,14 +181,20 @@ def _build_format_requests(
     players: list[PlayerRecord],
     display_days: list[str],
     game_days_with_results: list[str],
+    losers_by_day: dict[str, list[str]] | None = None,
 ) -> list[dict]:
     """
     Build a list of batch_format request dicts covering all cells.
     Applied in order: reset → header → alive rows (green) → eliminated rows (gray) → per-cell pick colors.
-    Per-cell colors only applied to columns in game_days_with_results (completed rounds).
+    Per-cell colors only applied to columns where actual loser data exists in the sheet.
     Later entries override earlier ones for the same cell.
     """
-    result_set = set(game_days_with_results)
+    # A day counts as "having results" only if losers were actually written to the sheet.
+    # This prevents all picks going green when --days-with-results is passed before update-results runs.
+    if losers_by_day is not None:
+        result_set = {d for d in game_days_with_results if losers_by_day.get(d)}
+    else:
+        result_set = set(game_days_with_results)
     formats = []
     total_cols = 1 + len(display_days)
     total_rows = 1 + len(players)
@@ -252,14 +258,25 @@ def _build_format_requests(
 
         # 5. Per-cell coloring for pick result (overrides row color)
         for col_i, day in enumerate(display_days):
-            if day not in result_set:
-                continue  # no coloring for rounds without results yet
             sheet_col = col_i + 2  # column A = Name, picks start at B
+            cell_ref = f"{col_letter(sheet_col)}{sheet_row}"
+
+            if day not in result_set:
+                # Game hasn't been played yet — yellow if pick submitted, white if not
+                if player.picks.get(day):
+                    formats.append({
+                        "range": cell_ref,
+                        "format": {
+                            "backgroundColor": COLOR_YELLOW,
+                            "textFormat": {"strikethrough": False},
+                        },
+                    })
+                continue
+
+            # Day has results — color by outcome
             status = player.pick_statuses.get(day)
             if not status:
                 continue
-
-            cell_ref = f"{col_letter(sheet_col)}{sheet_row}"
 
             if status.is_loser:
                 # Red: picked a losing team
@@ -272,7 +289,7 @@ def _build_format_requests(
                     },
                 })
             elif status.picked_team is None:
-                # Yellow: no pick submitted for a day that has results
+                # Yellow: no pick submitted for a completed day
                 formats.append({
                     "range": cell_ref,
                     "format": {
