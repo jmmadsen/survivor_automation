@@ -10,10 +10,11 @@ from src.config import (
     COLOR_WHITE, COLOR_RED, COLOR_YELLOW, COLOR_GRAY,
     COLOR_GREEN, COLOR_GREEN_ROW,
     COLOR_HEADER_BG, COLOR_HEADER_TEXT,
+    METRIC_COL_NAME,
 )
 from src.models import PlayerRecord
 from src.pick_validator import validate_picks_for_player, determine_elimination
-from src.results_updater import read_all_available_and_losers
+from src.results_updater import read_all_available_and_losers, read_seeds
 from src.sheets_client import SheetsClient, col_letter
 
 logger = logging.getLogger(__name__)
@@ -39,8 +40,9 @@ def build_formatted_sheet(
         display_days = GAME_DAYS
 
     available_by_day, losers_by_day = read_all_available_and_losers(client)
+    seeds_by_team = read_seeds(client)
     master_data = _read_master(client)
-    players = _build_player_records(master_data, available_by_day, losers_by_day, game_days_with_results)
+    players = _build_player_records(master_data, available_by_day, losers_by_day, game_days_with_results, seeds_by_team)
     players_sorted = _sort_players(players)
 
     header_row = _build_header_row(display_days)
@@ -51,6 +53,9 @@ def build_formatted_sheet(
 
     formats = _build_format_requests(players_sorted, display_days, game_days_with_results, losers_by_day)
     client.batch_format_cells(target_tab, formats)
+
+    # Write Degen Scores back to the Master sheet so the organizer can see them there too
+    _write_degen_score_to_master(client, players_sorted)
 
     alive_count = sum(1 for p in players_sorted if p.still_alive)
     elim_count = len(players_sorted) - alive_count
@@ -89,6 +94,7 @@ def _build_player_records(
     available_by_day: dict[str, list[str]],
     losers_by_day: dict[str, list[str]],
     game_days_with_results: list[str],
+    seeds_by_team: dict[str, int] | None = None,
 ) -> list[PlayerRecord]:
     players = []
     for row in master_data:
@@ -127,6 +133,14 @@ def _build_player_records(
         master_elim_status = row.get(MASTER_COL_ELIMINATED, "").strip()
         master_elim_on = row.get(MASTER_COL_ELIM_ON, "").strip()
 
+        # Compute Degen Score: sum of seeds for correctly-picked teams (green cells only)
+        if seeds_by_team:
+            player.seed_score = sum(
+                seeds_by_team.get(status.picked_team, 0)
+                for status in statuses.values()
+                if status.picked_team and not status.is_loser
+            )
+
         if is_elim:
             player.is_eliminated = True
             player.eliminated_on = elim_on
@@ -152,31 +166,81 @@ def _sort_players(players: list[PlayerRecord]) -> list[PlayerRecord]:
     1. Still alive → alphabetical by name
     2. Eliminated → most recently eliminated first, then alphabetical within same day
     """
-    alive = sorted([p for p in players if p.still_alive], key=lambda p: p.name.lower())
+    # Alive: highest Degen Score first, then alphabetical
+    alive = sorted(
+        [p for p in players if p.still_alive],
+        key=lambda p: (-p.seed_score, p.name.lower()),
+    )
 
     def elim_sort_key(p: PlayerRecord):
+        # Most recently eliminated first; within same day, highest Degen Score first
         if p.eliminated_on and p.eliminated_on in GAME_DAYS:
             day_rank = -GAME_DAYS.index(p.eliminated_on)  # negative → later days sort first
         else:
             day_rank = -999
-        return (day_rank, p.name.lower())
+        return (day_rank, -p.seed_score, p.name.lower())
 
     elim = sorted([p for p in players if not p.still_alive], key=elim_sort_key)
     return alive + elim
 
 
 def _build_header_row(game_days: list[str]) -> list:
-    return ["Name"] + game_days
+    return ["Name", METRIC_COL_NAME] + game_days
 
 
 def _build_player_row(player: PlayerRecord, game_days: list[str]) -> list:
-    row = [player.name]
+    row = [player.name, player.seed_score]
     elim_idx = _elimination_index(player)
     for day in game_days:
         day_idx = GAME_DAYS.index(day) if day in GAME_DAYS else 0
         pick = (player.picks.get(day) or "") if day_idx <= elim_idx else ""
         row.append(pick)
     return row
+
+
+def _write_degen_score_to_master(client: SheetsClient, players: list[PlayerRecord]) -> None:
+    """
+    Write each player's Degen Score to a column in the Master sheet.
+    Finds or creates the 'Degen Score' column header, then writes scores in-place.
+    Only touches the Degen Score column — all other Master data is untouched.
+    """
+    all_values = client.read_all_values(SHEET_MASTER)
+    if not all_values:
+        return
+
+    headers = [h.replace("\n", " ").strip() for h in all_values[0]]
+
+    # Find or create the Degen Score column
+    if METRIC_COL_NAME in headers:
+        score_col_idx = headers.index(METRIC_COL_NAME)  # 0-indexed
+    else:
+        # Append header to row 1 — expand sheet first if already at column limit
+        score_col_idx = len(headers)
+        client.ensure_columns(SHEET_MASTER, score_col_idx + 1)
+        col = col_letter(score_col_idx + 1)
+        client.update_range(SHEET_MASTER, f"{col}1", [[METRIC_COL_NAME]])
+        logger.info(f"Created '{METRIC_COL_NAME}' column at position {col} in Master sheet")
+
+    # Build name → score lookup
+    score_by_name = {p.name: p.seed_score for p in players}
+    col = col_letter(score_col_idx + 1)
+
+    # Build the full column in Master row order, then write it in one API call
+    column_values = []
+    matched = 0
+    for row in all_values[1:]:
+        name = row[0].strip() if row else ""
+        if name and name in score_by_name:
+            column_values.append([score_by_name[name]])
+            matched += 1
+        else:
+            column_values.append([""])
+
+    if column_values:
+        start_row = 2
+        end_row = start_row + len(column_values) - 1
+        client.update_range(SHEET_MASTER, f"{col}{start_row}:{col}{end_row}", column_values)
+        logger.info(f"Updated '{METRIC_COL_NAME}' for {matched} players in Master sheet (1 API call)")
 
 
 def _elimination_index(player: PlayerRecord) -> int:
@@ -205,7 +269,7 @@ def _build_format_requests(
     else:
         result_set = set(game_days_with_results)
     formats = []
-    total_cols = 1 + len(display_days)
+    total_cols = 1 + 1 + len(display_days)  # Name + Degen Score + picks
     total_rows = 1 + len(players)
 
     # 1. Reset entire sheet to white, no strikethrough
@@ -222,8 +286,8 @@ def _build_format_requests(
         },
     })
 
-    # 2. Header row formatting (dark background, white bold text)
-    header_range = f"A1:{col_letter(total_cols)}1"  # covers all display_days columns
+    # 2. Header row formatting (dark background, white bold text, centered)
+    header_range = f"A1:{col_letter(total_cols)}1"
     formats.append({
         "range": header_range,
         "format": {
@@ -272,7 +336,7 @@ def _build_format_requests(
             if day_idx > elim_idx:
                 continue  # post-elimination: leave cell blank and white
 
-            sheet_col = col_i + 2  # column A = Name, picks start at B
+            sheet_col = col_i + 3  # col A = Name, col B = Degen Score, picks start at C
             cell_ref = f"{col_letter(sheet_col)}{sheet_row}"
 
             if day not in result_set:

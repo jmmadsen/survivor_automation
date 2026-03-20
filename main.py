@@ -18,7 +18,7 @@ import sys
 from dotenv import load_dotenv
 
 from src.config import GAME_DAYS
-from src.results_updater import detect_days_with_results, update_results_for_day
+from src.results_updater import detect_days_with_results, update_results_for_day, populate_seeds
 from src.formatted_builder import build_formatted_sheet
 from src.publisher import publish_picks, reset_public_sheet
 from src.roster_sync import populate_master_roster
@@ -201,6 +201,10 @@ def cmd_populate_master(args, private_client: SheetsClient) -> None:
     populate_master_roster(private_client)
 
 
+def cmd_populate_seeds(args, private_client: SheetsClient) -> None:
+    populate_seeds(private_client)
+
+
 def cmd_reset_public(args, private_client: SheetsClient, public_client: SheetsClient | None) -> None:
     if public_client is None:
         print("ERROR: PUBLIC_SPREADSHEET_ID is not set in .env. Cannot reset public sheet.")
@@ -285,6 +289,12 @@ def main() -> None:
         help="Pull unique names from Signup Tracker and add them to Master sheet with email formulas",
     )
 
+    # populate-seeds
+    sub.add_parser(
+        "populate-seeds",
+        help="Fetch tournament seeds from ESPN and write them to the Team Seeds sheet (run once per tournament)",
+    )
+
     # reset-public
     sub.add_parser(
         "reset-public",
@@ -315,6 +325,8 @@ def main() -> None:
         cmd_run_all(args, private_client)
     elif args.command == "populate-master":
         cmd_populate_master(args, private_client)
+    elif args.command == "populate-seeds":
+        cmd_populate_seeds(args, private_client)
     elif args.command == "reset-public":
         cmd_reset_public(args, private_client, public_client)
     elif args.command == "test-connection":

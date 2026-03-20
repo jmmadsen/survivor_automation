@@ -3,7 +3,10 @@
 A Python CLI that automates the March Madness survivor pool workflow:
 - Fetches NCAA game results from ESPN and updates the **Teams & Results** sheet
 - Reads the **Master** sheet and rebuilds the **Formatted** sheet with color-coded pick results
+- Calculates each player's **Degen Score** (sum of seeds of correctly-picked teams) as a tiebreaker
 - Publishes a separate **Public Picks** sheet (in a different workbook) for participants to view
+
+---
 
 ## Setup
 
@@ -50,7 +53,33 @@ cp .env.example .env
 python main.py test-connection
 ```
 
-Reads the Master sheet and calls the ESPN API (using prior-year tournament data) to confirm everything is wired up correctly. Nothing is written.
+Reads the Master sheet and calls the ESPN API to confirm everything is wired up correctly. Nothing is written.
+
+---
+
+## Start-of-Tournament Setup (run once)
+
+These commands are run once at the beginning of each tournament, before any games are played.
+
+### `populate-master` — Import participant roster from Signup Tracker
+
+Reads the **Signup Tracker** sheet and appends any new participants (name + email) to the **Master** sheet. Safe to re-run — only adds names not already present, never overwrites existing rows.
+
+```bash
+python main.py populate-master
+```
+
+### `populate-seeds` — Fetch team seeds from ESPN
+
+Pulls every first-round team's tournament seed (1–16) from ESPN and writes them to the **Team Seeds** sheet. This powers the Degen Score tiebreaker for the rest of the tournament.
+
+Makes ~64 ESPN API calls — takes about 30 seconds. Safe to re-run if seeds need to be refreshed.
+
+```bash
+python main.py populate-seeds
+```
+
+> **Note:** The Team Seeds sheet and the Degen Score column in Master are created automatically if they don't exist yet.
 
 ---
 
@@ -66,7 +95,7 @@ python main.py update-results --day 3/19
 
 ### `update-formatted` — Rebuild the internal Formatted sheet
 
-Reads the Master sheet + Teams & Results and fully rebuilds the **Formatted** tab with color coding. Completed game days are auto-detected from the Teams & Results sheet.
+Reads the Master sheet + Teams & Results and fully rebuilds the **Formatted** tab with color coding and Degen Scores. Completed game days are auto-detected from the Teams & Results sheet. Also writes each player's Degen Score back to the Master sheet.
 
 ```bash
 python main.py update-formatted
@@ -92,10 +121,10 @@ Builds the formatted picks data from the private sheet and writes it directly to
 python main.py publish
 ```
 
-Reveal picks only through a specific game day (later columns are hidden from participants):
+Reveal picks only through a specific game day (later columns are blank for participants):
 
 ```bash
-python main.py publish --day 3/20
+python main.py publish --day 3/19
 ```
 
 ### `run-all` — Update results + rebuild Formatted in one step
@@ -103,7 +132,7 @@ python main.py publish --day 3/20
 Runs `update-results` then `update-formatted` in sequence. Does **not** publish — that is always a separate manual step.
 
 ```bash
-python main.py run-all --day 3/20
+python main.py run-all --day 3/19
 ```
 
 ### `reset-public` — Wipe the public sheet clean
@@ -118,7 +147,7 @@ If the tab is the only sheet in the workbook (Google won't allow deleting the la
 
 ### `test-connection` — Verify setup without writing anything
 
-Checks Google Sheets auth and ESPN API connectivity. Fetches the real 2026 bracket from ESPN (3/19/2026) and prints the team list and derived mascot words.
+Checks Google Sheets auth and ESPN API connectivity. Fetches the 2026 bracket from ESPN and prints the team list and derived mascot words.
 
 ```bash
 python main.py test-connection
@@ -129,20 +158,21 @@ python main.py test-connection
 ## Typical Daily Workflow
 
 ```bash
-# 1. After games finish, pull results and rebuild the internal Formatted sheet
-python main.py run-all --day 3/20
+# Before tip-off — picks are in but no results yet
+# All picks appear yellow (pending) so participants can see who picked what
+python main.py run-all --day 3/19
+python main.py publish --day 3/19
 
-# 2. Open the Formatted tab in Google Sheets and verify it looks correct
-
-# 3. When ready to reveal picks to participants, publish to the public sheet
-python main.py publish --day 3/20
+# After games finish — run again to apply results
+python main.py run-all --day 3/19
+python main.py publish --day 3/19
 ```
 
 ### If something looks wrong after publishing
 
 ```bash
 python main.py reset-public          # wipe the public sheet
-python main.py publish --day 3/20   # republish cleanly
+python main.py publish --day 3/19   # republish cleanly
 ```
 
 ---
@@ -153,15 +183,30 @@ python main.py publish --day 3/20   # republish cleanly
 
 | Tab Name | Description |
 |----------|-------------|
-| `Master` | Source of truth for all player picks. **Read-only** — the script never writes here. |
-| `Teams & Results` | Available teams + losers per game day. Script writes the Losers column and auto-populates Available Teams from ESPN. |
-| `Formatted` | Internal color-coded view. Fully rebuilt by `update-formatted`. |
+| `Master` | Source of truth for all player picks. Script reads picks from here and writes the Degen Score column. |
+| `Picks` | Raw form responses and manual overrides. Resolved into Master by the organizer. |
+| `Teams & Results` | Available teams + losers per game day. Script writes both columns from ESPN. |
+| `Formatted` | Internal color-coded view with Degen Scores. Fully rebuilt by `update-formatted`. |
+| `Team Seeds` | Tournament seed (1–16) for each team. Created by `populate-seeds`, read by `update-formatted`. |
+| `Signup Tracker` | Form responses from the signup sheet. Read by `populate-master`. |
 
 ### Public spreadsheet (separate workbook)
 
 | Tab Name | Description |
 |----------|-------------|
-| `Public Picks` | Participant-facing view. Same format as Formatted. Created and overwritten by `publish`. |
+| `Public Picks` | Participant-facing view. Same format as Formatted, including Degen Scores. Created and overwritten by `publish`. |
+
+---
+
+## Degen Score
+
+The **Degen Score** is a tiebreaker that rewards risky picks. It equals the **sum of the seeds** of all teams a player correctly picked. Higher seeds (bigger underdogs) are worth more points — so a player who correctly picked a 12-seed contributes 12 points to their score.
+
+- Only **correct picks** (green cells) count toward the score
+- Wrong picks, missed picks, and future rounds do not count
+- Eliminated players retain their score from their correct picks before elimination
+- Both the Formatted and Public Picks sheets are **sorted by Degen Score descending** (highest score = best tiebreaker position)
+- The score is also written to a **Degen Score column in the Master sheet** each time `update-formatted` runs — no manual setup needed
 
 ---
 
@@ -174,7 +219,8 @@ Applies to both the Formatted (private) and Public Picks sheets.
 | Light green row | Player is still alive |
 | Green cell | Correct pick for a completed game day |
 | Red cell | Picked a losing team |
-| Yellow cell | No pick submitted for a completed game day |
+| Yellow cell | Pick submitted but game not yet played, or no pick on a completed day |
 | Gray row + strikethrough | Player has been eliminated |
+| White cell | No pick submitted; future round not yet relevant |
 
-Pick coloring is only applied to columns where final results have been loaded. Future rounds remain uncolored.
+Pick coloring is only applied to columns where final results have been loaded into the Teams & Results sheet. Picks after a player's elimination are hidden entirely.

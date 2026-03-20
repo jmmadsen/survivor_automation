@@ -6,7 +6,8 @@
       "Bash(pip show:*)",
       "Bash(pip3 show:*)",
       "WebFetch(domain:site.api.espn.com)",
-      "WebFetch(domain:docs.gspread.org)"
+      "WebFetch(domain:docs.gspread.org)",
+      "Bash(curl -s \"https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates=20260319&groups=100&seasontype=3&limit=64\")"
     ]
   }
 }

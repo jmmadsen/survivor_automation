@@ -32,3 +32,4 @@ class PlayerRecord:
     is_eliminated: bool = False
     eliminated_on: Optional[str] = None
     still_alive: bool = True
+    seed_score: int = 0   # sum of seeds of correctly-picked teams (green cells only)

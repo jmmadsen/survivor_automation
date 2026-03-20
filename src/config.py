@@ -5,6 +5,10 @@ SHEET_TEAMS_RESULTS = "Teams & Results"
 SHEET_FORMATTED = "Formatted"
 SHEET_PUBLIC = "Public Picks"
 SHEET_SIGNUP = "Signup Tracker"
+SHEET_SEEDS = "Team Seeds"
+
+# Display name for the sum-of-seeds tiebreaker column
+METRIC_COL_NAME = "Degen Score"
 
 # Game days in tournament order
 GAME_DAYS = [

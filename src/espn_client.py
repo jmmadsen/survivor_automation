@@ -72,6 +72,42 @@ def _fetch_mascot_words_for_date(espn_date: str) -> set[str]:
     return mascots
 
 
+def fetch_seeds_for_day(game_day: str, espn_date: str) -> dict[str, int]:
+    """
+    Fetch NCAA tournament seeds for all teams playing on a given day directly from
+    the scoreboard endpoint. Seeds are read from competitor["curatedRank"]["current"],
+    which ESPN populates with the correct 1–16 tournament seed once the bracket is set.
+
+    Returns {team_location: seed_int}. One API call, no individual team lookups needed.
+    """
+    url = f"{ESPN_SCOREBOARD_URL}?dates={espn_date}&groups=100&seasontype=3&limit=64"
+    try:
+        resp = requests.get(url, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+    except requests.exceptions.RequestException as e:
+        raise RuntimeError(f"ESPN API request failed for {game_day} ({espn_date}): {e}") from e
+
+    events = [e for e in data.get("events", []) if _is_ncaa_tournament_event(e)]
+    seeds: dict[str, int] = {}
+    for event in events:
+        try:
+            competitors = event["competitions"][0]["competitors"]
+            for c in competitors:
+                location = c["team"]["location"].strip()
+                seed_val = c.get("curatedRank", {}).get("current")
+                if location and seed_val is not None:
+                    try:
+                        seeds[location] = int(seed_val)
+                    except (ValueError, TypeError):
+                        pass
+        except (KeyError, IndexError):
+            continue
+
+    logger.info(f"Fetched seeds for {len(seeds)} teams from {game_day} scoreboard")
+    return seeds
+
+
 def fetch_games_for_day(game_day: str, espn_date: str) -> list[GameResult]:
     """Fetch all NCAA Men's Tournament games for a date from ESPN. Returns GameResult list."""
     # seasontype=3 = postseason only (excludes regular season and NIT on same dates)

@@ -54,7 +54,7 @@ class SheetsClient:
     def update_range(self, tab_name: str, a1_range: str, values: list[list]) -> None:
         ws = self.get_worksheet(tab_name)
         ws.update(a1_range, values, value_input_option="USER_ENTERED")
-        logger.info(f"Updated range {a1_range} in '{tab_name}' ({len(values)} rows)")
+        logger.debug(f"Updated range {a1_range} in '{tab_name}' ({len(values)} rows)")
 
     def batch_format_cells(self, tab_name: str, formats: list[dict]) -> None:
         if not formats:
@@ -84,6 +84,13 @@ class SheetsClient:
         except gspread.WorksheetNotFound:
             logger.info(f"Worksheet '{tab_name}' not found, nothing to delete")
             return False
+
+    def ensure_columns(self, tab_name: str, min_cols: int) -> None:
+        """Expand the worksheet's column count if it is less than min_cols."""
+        ws = self.get_worksheet(tab_name)
+        if ws.col_count < min_cols:
+            ws.resize(cols=min_cols)
+            logger.info(f"Expanded '{tab_name}' to {min_cols} columns")
 
     def invalidate_cache(self, tab_name: str = None) -> None:
         if tab_name:

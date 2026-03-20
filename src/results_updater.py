@@ -1,11 +1,13 @@
 import logging
 
+import gspread
+
 from src.config import (
     GAME_DAYS, GAME_DAY_TO_ESPN_DATE,
-    SHEET_TEAMS_RESULTS,
+    SHEET_TEAMS_RESULTS, SHEET_SEEDS,
     TR_DATA_START, TR_COLS_PER_DAY,
 )
-from src.espn_client import fetch_games_for_day, fetch_teams_for_day, normalize_team_name
+from src.espn_client import fetch_games_for_day, fetch_teams_for_day, fetch_seeds_for_day, normalize_team_name
 from src.sheets_client import SheetsClient, col_letter
 
 logger = logging.getLogger(__name__)
@@ -149,6 +151,64 @@ def update_results_for_day(client: SheetsClient, game_day: str) -> list[str]:
     _write_losers(client, game_day, losers)
     print(f"Wrote {len(losers)} loser(s) for {game_day} to Teams & Results sheet.")
     return losers
+
+
+def populate_seeds(client: SheetsClient) -> None:
+    """
+    Fetch tournament seeds for all 64 first-round teams from ESPN and write them
+    to the 'Team Seeds' sheet. Safe to re-run — overwrites existing data.
+
+    Run once at the start of the tournament via: python main.py populate-seeds
+    Seeds are stable for the whole tournament, so this is not called automatically
+    by update-results.
+    """
+    # Seeds come directly from scoreboard curatedRank.current — 2 API calls total.
+    # 3/19 + 3/20 together cover all 64 first-round teams.
+    print("Fetching seeds from ESPN scoreboard (2 API calls)...")
+    seeds: dict[str, int] = {}
+    for game_day in GAME_DAYS[:2]:
+        espn_date = GAME_DAY_TO_ESPN_DATE[game_day]
+        try:
+            day_seeds = fetch_seeds_for_day(game_day, espn_date)
+            seeds.update(day_seeds)
+        except RuntimeError as e:
+            logger.warning(str(e))
+
+    if not seeds:
+        print("Could not retrieve any seed data from ESPN — bracket may not be posted yet.")
+        return
+
+    rows = [["Team", "Seed"]] + [[team, seed] for team, seed in sorted(seeds.items())]
+    client.clear_and_write(SHEET_SEEDS, rows, create_if_missing=True)
+
+    print(f"Written {len(seeds)} team seeds to '{SHEET_SEEDS}' sheet.")
+    for team, seed in sorted(seeds.items(), key=lambda x: (x[1], x[0])):
+        logger.debug(f"  {seed:>2}  {team}")
+
+
+def read_seeds(client: SheetsClient) -> dict[str, int]:
+    """
+    Read the Team Seeds sheet and return {team_name: seed_int}.
+    Returns an empty dict if the sheet does not exist or has no data.
+    """
+    try:
+        rows = client.read_all_values(SHEET_SEEDS)
+    except gspread.WorksheetNotFound:
+        logger.warning(f"'{SHEET_SEEDS}' sheet not found — Degen Scores will be 0. Run 'populate-seeds' first.")
+        return {}
+
+    if len(rows) < 2:
+        return {}
+
+    seeds: dict[str, int] = {}
+    for row in rows[1:]:  # skip header
+        if len(row) >= 2 and row[0].strip():
+            try:
+                seeds[row[0].strip()] = int(float(row[1]))
+            except (ValueError, TypeError):
+                logger.warning(f"Could not parse seed for team '{row[0]}': '{row[1]}'")
+    logger.info(f"Read seeds for {len(seeds)} teams from '{SHEET_SEEDS}'")
+    return seeds
 
 
 def _write_column(client: SheetsClient, game_day: str, col_0idx: int, values: list[str], clear_rows: int = 32) -> None:

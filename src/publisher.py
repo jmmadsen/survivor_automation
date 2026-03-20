@@ -8,7 +8,7 @@ from src.formatted_builder import (
     _build_header_row, _build_player_row, _build_format_requests,
     _elimination_index,
 )
-from src.results_updater import read_all_available_and_losers
+from src.results_updater import read_all_available_and_losers, read_seeds
 from src.sheets_client import SheetsClient
 
 logger = logging.getLogger(__name__)
@@ -41,17 +41,18 @@ def publish_picks(
     # Read and process data from private spreadsheet.
     # Use visible_result_days so results beyond --day don't affect elimination or coloring.
     available_by_day, losers_by_day = read_all_available_and_losers(private_client)
+    seeds_by_team = read_seeds(private_client)
     master_data = _read_master(private_client)
-    players = _build_player_records(master_data, available_by_day, losers_by_day, visible_result_days)
+    players = _build_player_records(master_data, available_by_day, losers_by_day, visible_result_days, seeds_by_team)
     players_sorted = _sort_players(players)
 
     # Header always shows all game days (matches the Formatted sheet).
-    # Pick cells are blank if: beyond reveal_days (future hidden) OR after elimination.
+    # Column B = Degen Score. Pick cells blank if beyond reveal_days or after elimination.
     header_row = _build_header_row(GAME_DAYS)
     data_rows = []
     for p in players_sorted:
         elim_idx = _elimination_index(p)
-        row = [p.name]
+        row = [p.name, p.seed_score]
         for day in GAME_DAYS:
             day_idx = GAME_DAYS.index(day)
             if day not in reveal_set or day_idx > elim_idx:
