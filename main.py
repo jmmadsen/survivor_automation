@@ -191,8 +191,7 @@ def cmd_publish(args, private_client: SheetsClient, public_client: SheetsClient 
 
     days = detect_days_with_results(private_client)
     if not days:
-        print("No completed game days detected. Run 'update-results' first.")
-        return
+        print("No completed game days detected — publishing with all picks marked yellow (pending).")
 
     through_day = getattr(args, "day", None)
     publish_picks(private_client, public_client, days, through_day=through_day)

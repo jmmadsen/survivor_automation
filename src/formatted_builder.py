@@ -171,10 +171,19 @@ def _build_header_row(game_days: list[str]) -> list:
 
 def _build_player_row(player: PlayerRecord, game_days: list[str]) -> list:
     row = [player.name]
+    elim_idx = _elimination_index(player)
     for day in game_days:
-        pick = player.picks.get(day) or ""
+        day_idx = GAME_DAYS.index(day) if day in GAME_DAYS else 0
+        pick = (player.picks.get(day) or "") if day_idx <= elim_idx else ""
         row.append(pick)
     return row
+
+
+def _elimination_index(player: PlayerRecord) -> int:
+    """Return the GAME_DAYS index of the player's elimination day, or len(GAME_DAYS) if not eliminated."""
+    if player.is_eliminated and player.eliminated_on and player.eliminated_on in GAME_DAYS:
+        return GAME_DAYS.index(player.eliminated_on)
+    return len(GAME_DAYS)  # sentinel: never suppress picks
 
 
 def _build_format_requests(
@@ -257,7 +266,12 @@ def _build_format_requests(
             })
 
         # 5. Per-cell coloring for pick result (overrides row color)
+        elim_idx = _elimination_index(player)
         for col_i, day in enumerate(display_days):
+            day_idx = GAME_DAYS.index(day) if day in GAME_DAYS else 0
+            if day_idx > elim_idx:
+                continue  # post-elimination: leave cell blank and white
+
             sheet_col = col_i + 2  # column A = Name, picks start at B
             cell_ref = f"{col_letter(sheet_col)}{sheet_row}"
 

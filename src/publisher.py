@@ -6,6 +6,7 @@ from src.config import GAME_DAYS, SHEET_PUBLIC
 from src.formatted_builder import (
     _read_master, _build_player_records, _sort_players,
     _build_header_row, _build_player_row, _build_format_requests,
+    _elimination_index,
 )
 from src.results_updater import read_all_available_and_losers
 from src.sheets_client import SheetsClient
@@ -30,27 +31,40 @@ def publish_picks(
         through_day: If set, only show columns through this game day. Picks for later
                      days are hidden so participants can't see future rounds. None = all days.
     """
-    display_days = _resolve_display_days(through_day)
+    # reveal_days: columns whose pick data is shown (up to through_day, or all)
+    reveal_days = _resolve_display_days(through_day)
+    reveal_set = set(reveal_days)
 
-    # Only color days that are both in results AND within the visible window
-    visible_result_days = [d for d in game_days_with_results if d in set(display_days)]
+    # Only color days that are both in results AND within the reveal window
+    visible_result_days = [d for d in game_days_with_results if d in reveal_set]
 
     # Read and process data from private spreadsheet.
-    # Use visible_result_days (not game_days_with_results) so that results beyond
-    # the --day cutoff don't affect elimination status or pick coloring.
+    # Use visible_result_days so results beyond --day don't affect elimination or coloring.
     available_by_day, losers_by_day = read_all_available_and_losers(private_client)
     master_data = _read_master(private_client)
     players = _build_player_records(master_data, available_by_day, losers_by_day, visible_result_days)
     players_sorted = _sort_players(players)
 
-    # Build output
-    header_row = _build_header_row(display_days)
-    data_rows = [_build_player_row(p, display_days) for p in players_sorted]
+    # Header always shows all game days (matches the Formatted sheet).
+    # Pick cells are blank if: beyond reveal_days (future hidden) OR after elimination.
+    header_row = _build_header_row(GAME_DAYS)
+    data_rows = []
+    for p in players_sorted:
+        elim_idx = _elimination_index(p)
+        row = [p.name]
+        for day in GAME_DAYS:
+            day_idx = GAME_DAYS.index(day)
+            if day not in reveal_set or day_idx > elim_idx:
+                row.append("")
+            else:
+                row.append(p.picks.get(day) or "")
+        data_rows.append(row)
     all_rows = [header_row] + data_rows
 
-    # Write values then formatting to the public spreadsheet
+    # Write values then formatting to the public spreadsheet.
+    # Pass reveal_days (not GAME_DAYS) to format requests so hidden columns stay white.
     public_client.clear_and_write(SHEET_PUBLIC, all_rows, create_if_missing=True)
-    formats = _build_format_requests(players_sorted, display_days, visible_result_days, losers_by_day)
+    formats = _build_format_requests(players_sorted, reveal_days, visible_result_days, losers_by_day)
     public_client.batch_format_cells(SHEET_PUBLIC, formats)
 
     alive_count = sum(1 for p in players_sorted if p.still_alive)
