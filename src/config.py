@@ -73,3 +73,36 @@ VALID_WARN = "⚠ INVALID"
 # Status strings used in Master sheet Eliminated? column
 STATUS_ALIVE = "✅ Alive"
 STATUS_OUT = "❌ OUT"
+
+# Pool configuration (used by site exporter / dashboard)
+POOL_NAME = "Temple's Madness Survivor Pool 2026"
+POOL_SEASON = 2026
+POOL_ENTRY_FEE = 25  # dollars per entry
+
+# Human-readable labels for each game day (used by dashboard)
+GAME_DAY_LABELS = {
+    "3/19": "Round of 64 - Day 1",
+    "3/20": "Round of 64 - Day 2",
+    "3/21": "Round of 32 - Day 1",
+    "3/22": "Round of 32 - Day 2",
+    "3/26": "Sweet 16 - Day 1",
+    "3/27": "Sweet 16 - Day 2",
+    "3/28": "Elite Eight - Day 1",
+    "3/29": "Elite Eight - Day 2",
+    "4/4":  "Final Four",
+    "4/6":  "Championship",
+}
+
+# ISO 8601 date strings for each game day (used by dashboard)
+GAME_DAY_ISO_DATES = {
+    "3/19": "2026-03-19",
+    "3/20": "2026-03-20",
+    "3/21": "2026-03-21",
+    "3/22": "2026-03-22",
+    "3/26": "2026-03-26",
+    "3/27": "2026-03-27",
+    "3/28": "2026-03-28",
+    "3/29": "2026-03-29",
+    "4/4":  "2026-04-04",
+    "4/6":  "2026-04-06",
+}
