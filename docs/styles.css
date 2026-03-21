@@ -52,7 +52,7 @@
 
   /* Fonts */
   --font-display: 'Bebas Neue', 'Impact', sans-serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Barlow Semi Condensed', -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* Transitions */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -1004,6 +1004,62 @@ body {
   font-weight: 600;
   min-width: 24px;
   text-align: right;
+}
+
+/* Risk / Danger Zone */
+.risk-list {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.risk-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.risk-name {
+  font-weight: 600;
+  font-size: 13px;
+  min-width: 120px;
+}
+
+.risk-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s var(--ease-out);
+}
+
+.risk-bar-fill.risk-high {
+  background: linear-gradient(90deg, var(--red), #dc2626);
+}
+
+.risk-bar-fill.risk-med {
+  background: linear-gradient(90deg, var(--gold), var(--gold-dim));
+}
+
+.risk-bar-fill.risk-low {
+  background: linear-gradient(90deg, var(--green), #16a34a);
+}
+
+.risk-count {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+  min-width: 80px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.risk-disclaimer {
+  padding: 8px 16px 16px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+  text-align: center;
 }
 
 /* ============================================

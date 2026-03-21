@@ -97,8 +97,9 @@
     setText('heroAlive', meta.alive_players);
     setText('heroTotal', meta.total_players);
     setText('heroDay', 'Day ' + meta.current_day);
-    setText('heroPot', '$' + meta.pot.toLocaleString());
-    setText('navPot', '$' + meta.pot.toLocaleString());
+    const pot = meta.total_players * 25;
+    setText('heroPot', '$' + pot.toLocaleString());
+    setText('navPot', '$' + pot.toLocaleString());
 
     // Alive bar
     const pct = (meta.alive_players / meta.total_players) * 100;
@@ -389,6 +390,7 @@
     renderSurvivalChart('statsSurvivalChart', true);
     renderOverlap();
     renderSeedDistribution(DATA.daily_results[DATA.daily_results.length - 1].day);
+    renderRisk();
   }
 
   function renderPickDistribution(dayNum) {
@@ -559,6 +561,33 @@
             <div class="overlap-bar-fill" style="width:${pct}%"></div>
           </div>
           <span class="overlap-count">${d.alive_users_used}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderRisk() {
+    const remaining = DATA.predictions.remaining_teams_by_player;
+    if (!remaining) return;
+
+    const entries = Object.entries(remaining)
+      .map(([name, teams]) => ({ name, count: teams.length }))
+      .sort((a, b) => a.count - b.count)
+      .slice(0, 10);
+
+    const maxCount = Math.max(...entries.map(e => e.count), 1);
+    const container = document.getElementById('riskList');
+
+    container.innerHTML = entries.map(e => {
+      const pct = (e.count / maxCount) * 100;
+      const danger = e.count <= 5 ? 'risk-high' : e.count <= 15 ? 'risk-med' : 'risk-low';
+      return `
+        <div class="risk-item">
+          <span class="risk-name">${esc(e.name)}</span>
+          <div class="overlap-bar-bg">
+            <div class="risk-bar-fill ${danger}" style="width:${pct}%"></div>
+          </div>
+          <span class="risk-count">${e.count} teams left</span>
         </div>
       `;
     }).join('');

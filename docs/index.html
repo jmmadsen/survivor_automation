@@ -6,7 +6,7 @@
   <title>Temple's Madness Survivor Pool</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -201,6 +201,18 @@
         <div class="chart-container">
           <canvas id="seedDistChart"></canvas>
         </div>
+      </div>
+
+      <!-- Predictions & Risk -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-label">DANGER ZONE</span>
+          <span class="card-sub">Players with fewest remaining team options</span>
+        </div>
+        <div class="risk-list" id="riskList">
+          <!-- Filled by JS -->
+        </div>
+        <p class="risk-disclaimer">For entertainment only. Not actual predictions.</p>
       </div>
     </section>
 
