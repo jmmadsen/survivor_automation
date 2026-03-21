@@ -785,15 +785,18 @@
     if (oldOverlay) oldOverlay.remove();
 
     if (player.status === 'eliminated') {
-      // Death animation
+      // Death animation — random style matching board tab
       card.classList.add('player-card-death');
+      const words = ['WASTED', 'FATALITY', 'ELIMINATED', 'YOU DIED', 'GAME OVER', '//RUN_COMPLETE', 'FLATLINED', 'TIME OVER', 'YOUR LIGHT FADES AWAY', 'You have died of dysentery', 'Snake? SNAKE??? SNAAAAAAAKKKEEEEE!!!!!'];
+      const styles = ['death-wasted', 'death-fatality', 'death-eliminated', 'death-youdied', 'death-gameover', 'death-marathon', 'death-flatlined', 'death-timeover', 'death-destiny', 'death-oregon', 'death-mgs'];
+      const pick = Math.floor(Math.random() * words.length);
       const overlay = document.createElement('div');
       overlay.className = 'player-card-death-overlay';
-      overlay.innerHTML = '<span>ELIMINATED</span>';
+      overlay.innerHTML = '<span class="death-text ' + styles[pick] + '">' + words[pick] + '</span>';
       card.appendChild(overlay);
       setTimeout(() => {
         if (overlay.parentNode) overlay.remove();
-      }, 1300);
+      }, 2500);
     } else {
       // Alive pulse
       card.classList.add('player-card-alive');

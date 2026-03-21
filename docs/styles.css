@@ -1684,14 +1684,17 @@ body {
   background: rgba(15, 20, 25, 0.85);
   z-index: 10;
   pointer-events: none;
-  animation: playerOverlayIn 0.25s ease-out, playerOverlayOut 0.4s 0.8s ease-in forwards;
+  animation: playerOverlayIn 0.25s ease-out, playerOverlayOut 0.4s 1.8s ease-in forwards;
 }
 
 .player-card-death-overlay span {
+  /* Base styles — overridden by .death-text.death-* classes */
   font-family: var(--font-display);
   font-size: 36px;
   letter-spacing: 6px;
   color: var(--red);
+  text-align: center;
+  max-width: 90%;
   text-shadow:
     0 0 12px rgba(239, 68, 68, 0.6),
     0 0 30px rgba(239, 68, 68, 0.3);
