@@ -423,8 +423,8 @@
           if (player && player.status === 'eliminated' && picksContent) {
             picksContent.classList.add('picks-hidden');
 
-            const words = ['WASTED', 'FATALITY', 'ELIMINATED', 'RIP'];
-            const styles = ['death-wasted', 'death-fatality', 'death-eliminated', 'death-rip'];
+            const words = ['WASTED', 'FATALITY', 'ELIMINATED', 'RIP', 'YOU DIED', 'GAME OVER', '//RUN_COMPLETE', 'FLATLINED', 'TIME OVER'];
+            const styles = ['death-wasted', 'death-fatality', 'death-eliminated', 'death-rip', 'death-youdied', 'death-gameover', 'death-marathon', 'death-flatlined', 'death-timeover'];
             const pick = Math.floor(Math.random() * words.length);
 
             const overlay = document.createElement('div');
