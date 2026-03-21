@@ -22,7 +22,6 @@ from src.models import PlayerRecord
 from src.results_updater import (
     read_all_available_and_losers,
     read_seeds,
-    detect_days_with_results,
 )
 from src.sheets_client import SheetsClient
 
@@ -44,7 +43,7 @@ def export_site_data(
     available_by_day, losers_by_day = read_all_available_and_losers(client)
     seeds_by_team = read_seeds(client)
     master_data = _read_master(client)
-    days_with_results = detect_days_with_results(client)
+    days_with_results = [day for day in GAME_DAYS if losers_by_day.get(day)]
 
     # Build and sort player records (seeds_by_team is the 5th arg -- critical
     # for degen scores to be non-zero)
@@ -82,6 +81,9 @@ def export_site_data(
         "stats": stats,
         "predictions": predictions,
     }
+
+    import os
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
 
     with open(output_path, "w", encoding="utf-8") as fh:
         json.dump(payload, fh, indent=2, ensure_ascii=False)
