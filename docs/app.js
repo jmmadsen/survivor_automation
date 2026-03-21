@@ -400,17 +400,16 @@
         if (expandedRow === name) {
           row.classList.remove('expanded');
           picksRow.classList.remove('visible');
-          // Remove any leftover death text
-          const oldDeath = picksRow.querySelector('.death-text');
-          if (oldDeath) oldDeath.remove();
+          const oldOverlay = picksRow.querySelector('.death-overlay');
+          if (oldOverlay) oldOverlay.remove();
           expandedRow = null;
         } else {
           // Collapse previous
           tbody.querySelectorAll('.table-row.expanded').forEach(r => r.classList.remove('expanded'));
           tbody.querySelectorAll('.picks-row.visible').forEach(r => {
             r.classList.remove('visible');
-            const dt = r.querySelector('.death-text');
-            if (dt) dt.remove();
+            const ov = r.querySelector('.death-overlay');
+            if (ov) ov.remove();
           });
           row.classList.add('expanded');
           picksRow.classList.add('visible');
@@ -419,22 +418,18 @@
           // Death animation for eliminated players
           const player = DATA.players.find(p => p.name === name);
           if (player && player.status === 'eliminated') {
-            picksRow.classList.add('elimination-flash');
-            setTimeout(() => picksRow.classList.remove('elimination-flash'), 350);
-
             const words = ['WASTED', 'FATALITY', 'ELIMINATED', 'RIP'];
             const styles = ['death-wasted', 'death-fatality', 'death-eliminated', 'death-rip'];
             const pick = Math.floor(Math.random() * words.length);
 
-            const deathEl = document.createElement('div');
-            deathEl.className = 'death-text ' + styles[pick];
-            deathEl.textContent = words[pick];
-            picksRow.insertBefore(deathEl, picksRow.querySelector('.picks-label'));
+            const overlay = document.createElement('div');
+            overlay.className = 'death-overlay';
+            overlay.innerHTML = '<span class="death-text ' + styles[pick] + '">' + words[pick] + '</span>';
+            picksRow.appendChild(overlay);
 
-            // Remove the text after animation completes (1.5s)
             setTimeout(() => {
-              if (deathEl.parentNode) deathEl.remove();
-            }, 1500);
+              if (overlay.parentNode) overlay.remove();
+            }, 1600);
           }
         }
       });
