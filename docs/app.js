@@ -22,7 +22,7 @@
 
   async function init() {
     try {
-      const resp = await fetch('data/pool.json');
+      const resp = await fetch('data/pool.json?v=' + Date.now());
       if (!resp.ok) throw new Error('Failed to load pool data');
       DATA = await resp.json();
     } catch (err) {
