@@ -356,6 +356,10 @@ def _build_survival_curve(
     curve = []
     days_with_results_set = set(days_with_results)
 
+    # Day 0: everyone starts alive
+    total = len(players)
+    curve.append({"day": "Start", "alive": total, "label": "Day 0 (Start)"})
+
     for i, day in enumerate(GAME_DAYS):
         if day not in days_with_results_set:
             break
