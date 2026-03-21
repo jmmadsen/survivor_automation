@@ -1381,7 +1381,21 @@ body {
    ELIMINATION ANIMATIONS (Board tab)
    ============================================ */
 
-/* Death overlay — absolutely positioned so it doesn't shift layout */
+/* Picks hidden during death animation, then revealed with fade */
+.picks-hidden {
+  opacity: 0;
+}
+
+.picks-reveal {
+  animation: picksRevealIn 0.4s ease-out;
+}
+
+@keyframes picksRevealIn {
+  0%   { opacity: 0; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Death overlay — covers the empty picks area during animation */
 .death-overlay {
   position: absolute;
   inset: 0;
@@ -1390,32 +1404,14 @@ body {
   justify-content: center;
   z-index: 5;
   pointer-events: none;
-  animation: deathOverlayIn 0.3s ease-out, deathOverlayOut 0.4s 1.1s ease-in forwards;
+  background: rgba(239, 68, 68, 0.12);
+  animation: deathOverlayBg 1.5s ease-out forwards;
 }
 
-.death-overlay::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: var(--bg-card-hover, #1e2538);
-  animation: deathBgFlash 0.5s ease-out forwards;
-}
-
-@keyframes deathBgFlash {
-  0%   { background: rgba(239, 68, 68, 0.35); }
-  30%  { background: rgba(239, 68, 68, 0.15); }
-  100% { background: var(--bg-card-hover, #1e2538); }
-}
-
-@keyframes deathOverlayIn {
-  0%   { opacity: 0; }
-  100% { opacity: 1; }
-}
-
-@keyframes deathOverlayOut {
-  0%   { opacity: 1; }
-  100% { opacity: 0; }
+@keyframes deathOverlayBg {
+  0%   { background: rgba(239, 68, 68, 0.2); }
+  30%  { background: rgba(239, 68, 68, 0.06); }
+  100% { background: transparent; }
 }
 
 /* Death text inside overlay */

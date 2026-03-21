@@ -380,13 +380,15 @@
           </div>
         </div>
         <div class="picks-row" data-picks-for="${esc(p.name)}">
-          <div class="picks-label">Pick History</div>
-          <div class="picks-list">
-            ${p.picks.map(pk => `
-              <span class="pick-pill ${pk.result}">
-                ${esc(pk.team)} <span class="pill-seed">(${pk.seed})</span>
-              </span>
-            `).join('')}
+          <div class="picks-inner">
+            <div class="picks-label">Pick History</div>
+            <div class="picks-list">
+              ${p.picks.map(pk => `
+                <span class="pick-pill ${pk.result}">
+                  ${esc(pk.team)} <span class="pill-seed">(${pk.seed})</span>
+                </span>
+              `).join('')}
+            </div>
           </div>
         </div>
       `;
@@ -415,9 +417,12 @@
           picksRow.classList.add('visible');
           expandedRow = name;
 
-          // Death animation for eliminated players
+          // Death animation for eliminated players — hide picks until animation finishes
           const player = DATA.players.find(p => p.name === name);
-          if (player && player.status === 'eliminated') {
+          const picksContent = picksRow.querySelector('.picks-inner');
+          if (player && player.status === 'eliminated' && picksContent) {
+            picksContent.classList.add('picks-hidden');
+
             const words = ['WASTED', 'FATALITY', 'ELIMINATED', 'RIP'];
             const styles = ['death-wasted', 'death-fatality', 'death-eliminated', 'death-rip'];
             const pick = Math.floor(Math.random() * words.length);
@@ -429,7 +434,10 @@
 
             setTimeout(() => {
               if (overlay.parentNode) overlay.remove();
-            }, 1600);
+              picksContent.classList.remove('picks-hidden');
+              picksContent.classList.add('picks-reveal');
+              setTimeout(() => picksContent.classList.remove('picks-reveal'), 400);
+            }, 1500);
           }
         }
       });
