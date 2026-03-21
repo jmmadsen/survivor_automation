@@ -1,0 +1,402 @@
+{
+  "meta": {
+    "pool_name": "Temple's Madness Survivor Pool 2026",
+    "season": 2026,
+    "entry_fee": 25,
+    "total_players": 20,
+    "alive_players": 14,
+    "eliminated_players": 6,
+    "current_day": 2,
+    "total_days": 10,
+    "pot": 500,
+    "last_updated": "2026-03-20T23:59:00Z"
+  },
+  "team_seeds": {
+    "Gonzaga": 1,
+    "Houston": 1,
+    "Duke": 2,
+    "Tennessee": 2,
+    "Auburn": 1,
+    "Purdue": 3,
+    "UConn": 4,
+    "Iowa State": 3,
+    "Kentucky": 6,
+    "Baylor": 5,
+    "Marquette": 2,
+    "Arizona": 4,
+    "Creighton": 7,
+    "Kansas": 1,
+    "Oregon State": 11,
+    "Miami FL": 10,
+    "St. Peter's": 15,
+    "Yale": 14,
+    "Vermont": 13,
+    "New Mexico State": 12,
+    "Colorado State": 8,
+    "Memphis": 9,
+    "San Diego State": 5,
+    "Texas": 6,
+    "UCLA": 3,
+    "Michigan State": 7,
+    "North Carolina": 8,
+    "Clemson": 9,
+    "Drake": 12,
+    "James Madison": 12,
+    "Oakland": 14,
+    "Stetson": 16
+  },
+  "daily_results": [
+    {
+      "day": 1,
+      "date": "2026-03-19",
+      "label": "Round of 64 - Day 1",
+      "available_teams": [
+        "Gonzaga", "Houston", "Duke", "Tennessee", "Auburn", "Purdue",
+        "UConn", "Iowa State", "Kentucky", "Baylor", "Oregon State",
+        "Miami FL", "St. Peter's", "Yale", "Vermont", "Stetson"
+      ],
+      "winners": [
+        "Gonzaga", "Houston", "Duke", "Tennessee", "Auburn", "Purdue",
+        "UConn", "Iowa State", "Kentucky", "Baylor", "Oregon State",
+        "Miami FL", "St. Peter's"
+      ],
+      "losers": ["Yale", "Vermont", "Stetson"],
+      "upsets": [
+        {
+          "winner": "Oregon State",
+          "winner_seed": 11,
+          "loser": "Michigan State",
+          "loser_seed": 7
+        },
+        {
+          "winner": "St. Peter's",
+          "winner_seed": 15,
+          "loser": "Purdue",
+          "loser_seed": 3
+        },
+        {
+          "winner": "Miami FL",
+          "winner_seed": 10,
+          "loser": "Colorado State",
+          "loser_seed": 8
+        }
+      ],
+      "eliminations": [
+        { "player": "Uncle Rico", "team": "Yale", "seed": 14 },
+        { "player": "Bobby Buckets", "team": "Vermont", "seed": 13 },
+        { "player": "Chalky McChalkface", "team": "Stetson", "seed": 16 }
+      ],
+      "stats": {
+        "most_picked_today": { "team": "Gonzaga", "seed": 1, "count": 6, "result": "win" },
+        "biggest_degen_pick": { "player": "Degen Dave", "team": "St. Peter's", "seed": 15, "result": "win" },
+        "deadliest_team": { "team": "Yale", "seed": 14, "kills": 1 },
+        "chalk_king": { "player": "SafeSpace Steve", "team": "Houston", "seed": 1 },
+        "degen_king": { "player": "Degen Dave", "team": "St. Peter's", "seed": 15 },
+        "survivors": 17,
+        "eliminated": 3
+      }
+    },
+    {
+      "day": 2,
+      "date": "2026-03-20",
+      "label": "Round of 64 - Day 2",
+      "available_teams": [
+        "Marquette", "Arizona", "Creighton", "Kansas", "San Diego State",
+        "Texas", "UCLA", "North Carolina", "Clemson", "Memphis",
+        "Drake", "James Madison", "Oakland", "New Mexico State",
+        "Colorado State", "Michigan State"
+      ],
+      "winners": [
+        "Marquette", "Arizona", "Kansas", "San Diego State", "UCLA",
+        "North Carolina", "Clemson", "Drake", "James Madison",
+        "New Mexico State", "Michigan State"
+      ],
+      "losers": ["Creighton", "Texas", "Memphis", "Oakland", "Colorado State"],
+      "upsets": [
+        {
+          "winner": "James Madison",
+          "winner_seed": 12,
+          "loser": "UConn",
+          "loser_seed": 4
+        },
+        {
+          "winner": "Drake",
+          "winner_seed": 12,
+          "loser": "Memphis",
+          "loser_seed": 9
+        },
+        {
+          "winner": "New Mexico State",
+          "winner_seed": 12,
+          "loser": "Clemson",
+          "loser_seed": 9
+        }
+      ],
+      "eliminations": [
+        { "player": "Karen from Accounting", "team": "Creighton", "seed": 7 },
+        { "player": "Tommy Two-Picks", "team": "Texas", "seed": 6 },
+        { "player": "Bracket Buster Bill", "team": "Oakland", "seed": 14 }
+      ],
+      "stats": {
+        "most_picked_today": { "team": "Kansas", "seed": 1, "count": 5, "result": "win" },
+        "biggest_degen_pick": { "player": "YOLO Yolanda", "team": "James Madison", "seed": 12, "result": "win" },
+        "deadliest_team": { "team": "Creighton", "seed": 7, "kills": 1 },
+        "chalk_king": { "player": "Steady Eddie", "team": "Kansas", "seed": 1 },
+        "degen_king": { "player": "YOLO Yolanda", "team": "James Madison", "seed": 12 },
+        "survivors": 14,
+        "eliminated": 6
+      }
+    }
+  ],
+  "players": [
+    {
+      "name": "Degen Dave",
+      "status": "alive",
+      "rank": 1,
+      "degen_score": 26,
+      "picks": [
+        { "day": 1, "team": "St. Peter's", "seed": 15, "result": "win" },
+        { "day": 2, "team": "James Madison", "seed": 12, "result": "win" }
+      ]
+    },
+    {
+      "name": "YOLO Yolanda",
+      "status": "alive",
+      "rank": 2,
+      "degen_score": 22,
+      "picks": [
+        { "day": 1, "team": "Oregon State", "seed": 11, "result": "win" },
+        { "day": 2, "team": "James Madison", "seed": 12, "result": "win" }
+      ]
+    },
+    {
+      "name": "Mad Dog Martinez",
+      "status": "alive",
+      "rank": 3,
+      "degen_score": 18,
+      "picks": [
+        { "day": 1, "team": "Miami FL", "seed": 10, "result": "win" },
+        { "day": 2, "team": "North Carolina", "seed": 8, "result": "win" }
+      ]
+    },
+    {
+      "name": "SweatyPalms Pete",
+      "status": "alive",
+      "rank": 4,
+      "degen_score": 15,
+      "picks": [
+        { "day": 1, "team": "Kentucky", "seed": 6, "result": "win" },
+        { "day": 2, "team": "Clemson", "seed": 9, "result": "win" }
+      ]
+    },
+    {
+      "name": "Chaos Carl",
+      "status": "alive",
+      "rank": 5,
+      "degen_score": 14,
+      "picks": [
+        { "day": 1, "team": "Baylor", "seed": 5, "result": "win" },
+        { "day": 2, "team": "Clemson", "seed": 9, "result": "win" }
+      ]
+    },
+    {
+      "name": "Lucky Lucy",
+      "status": "alive",
+      "rank": 6,
+      "degen_score": 13,
+      "picks": [
+        { "day": 1, "team": "Iowa State", "seed": 3, "result": "win" },
+        { "day": 2, "team": "Miami FL", "seed": 10, "result": "win" }
+      ]
+    },
+    {
+      "name": "Gut Feeling Greg",
+      "status": "alive",
+      "rank": 7,
+      "degen_score": 11,
+      "picks": [
+        { "day": 1, "team": "UConn", "seed": 4, "result": "win" },
+        { "day": 2, "team": "Creighton", "seed": 7, "result": "win" }
+      ]
+    },
+    {
+      "name": "SafeSpace Steve",
+      "status": "alive",
+      "rank": 8,
+      "degen_score": 6,
+      "picks": [
+        { "day": 1, "team": "Houston", "seed": 1, "result": "win" },
+        { "day": 2, "team": "San Diego State", "seed": 5, "result": "win" }
+      ]
+    },
+    {
+      "name": "Steady Eddie",
+      "status": "alive",
+      "rank": 9,
+      "degen_score": 4,
+      "picks": [
+        { "day": 1, "team": "Purdue", "seed": 3, "result": "win" },
+        { "day": 2, "team": "Kansas", "seed": 1, "result": "win" }
+      ]
+    },
+    {
+      "name": "Vanilla Vince",
+      "status": "alive",
+      "rank": 10,
+      "degen_score": 3,
+      "picks": [
+        { "day": 1, "team": "Gonzaga", "seed": 1, "result": "win" },
+        { "day": 2, "team": "Marquette", "seed": 2, "result": "win" }
+      ]
+    },
+    {
+      "name": "Basic Brenda",
+      "status": "alive",
+      "rank": 11,
+      "degen_score": 3,
+      "picks": [
+        { "day": 1, "team": "Gonzaga", "seed": 1, "result": "win" },
+        { "day": 2, "team": "Marquette", "seed": 2, "result": "win" }
+      ]
+    },
+    {
+      "name": "Template Tim",
+      "status": "alive",
+      "rank": 12,
+      "degen_score": 2,
+      "picks": [
+        { "day": 1, "team": "Auburn", "seed": 1, "result": "win" },
+        { "day": 2, "team": "Kansas", "seed": 1, "result": "win" }
+      ]
+    },
+    {
+      "name": "Copycat Cathy",
+      "status": "alive",
+      "rank": 13,
+      "degen_score": 2,
+      "picks": [
+        { "day": 1, "team": "Duke", "seed": 2, "result": "win" },
+        { "day": 2, "team": "Kansas", "seed": 1, "result": "win" }
+      ]
+    },
+    {
+      "name": "NPC Nancy",
+      "status": "alive",
+      "rank": 14,
+      "degen_score": 5,
+      "picks": [
+        { "day": 1, "team": "Gonzaga", "seed": 1, "result": "win" },
+        { "day": 2, "team": "Arizona", "seed": 4, "result": "win" }
+      ]
+    },
+    {
+      "name": "Uncle Rico",
+      "status": "eliminated",
+      "rank": 15,
+      "degen_score": 14,
+      "eliminated_day": 1,
+      "picks": [
+        { "day": 1, "team": "Yale", "seed": 14, "result": "loss" }
+      ]
+    },
+    {
+      "name": "Bobby Buckets",
+      "status": "eliminated",
+      "rank": 16,
+      "degen_score": 13,
+      "eliminated_day": 1,
+      "picks": [
+        { "day": 1, "team": "Vermont", "seed": 13, "result": "loss" }
+      ]
+    },
+    {
+      "name": "Chalky McChalkface",
+      "status": "eliminated",
+      "rank": 17,
+      "degen_score": 16,
+      "eliminated_day": 1,
+      "picks": [
+        { "day": 1, "team": "Stetson", "seed": 16, "result": "loss" }
+      ]
+    },
+    {
+      "name": "Karen from Accounting",
+      "status": "eliminated",
+      "rank": 18,
+      "degen_score": 7,
+      "eliminated_day": 2,
+      "picks": [
+        { "day": 1, "team": "Gonzaga", "seed": 1, "result": "win" },
+        { "day": 2, "team": "Creighton", "seed": 7, "result": "loss" }
+      ]
+    },
+    {
+      "name": "Tommy Two-Picks",
+      "status": "eliminated",
+      "rank": 19,
+      "degen_score": 8,
+      "eliminated_day": 2,
+      "picks": [
+        { "day": 1, "team": "Tennessee", "seed": 2, "result": "win" },
+        { "day": 2, "team": "Texas", "seed": 6, "result": "loss" }
+      ]
+    },
+    {
+      "name": "Bracket Buster Bill",
+      "status": "eliminated",
+      "rank": 20,
+      "degen_score": 16,
+      "eliminated_day": 2,
+      "picks": [
+        { "day": 1, "team": "Tennessee", "seed": 2, "result": "win" },
+        { "day": 2, "team": "Oakland", "seed": 14, "result": "loss" }
+      ]
+    }
+  ],
+  "survival_curve": [
+    { "day": 0, "alive": 20, "label": "Start" },
+    { "day": 1, "alive": 17, "label": "R64 Day 1" },
+    { "day": 2, "alive": 14, "label": "R64 Day 2" }
+  ],
+  "predictions": {
+    "pick_overlap": {
+      "Gonzaga": { "times_used": 4, "alive_users_used": 3 },
+      "Houston": { "times_used": 2, "alive_users_used": 1 },
+      "Duke": { "times_used": 2, "alive_users_used": 1 },
+      "Kansas": { "times_used": 5, "alive_users_used": 3 },
+      "Auburn": { "times_used": 2, "alive_users_used": 1 },
+      "Marquette": { "times_used": 3, "alive_users_used": 2 },
+      "Tennessee": { "times_used": 2, "alive_users_used": 0 },
+      "Kentucky": { "times_used": 1, "alive_users_used": 1 },
+      "St. Peter's": { "times_used": 1, "alive_users_used": 1 },
+      "Oregon State": { "times_used": 1, "alive_users_used": 1 },
+      "Miami FL": { "times_used": 2, "alive_users_used": 1 },
+      "James Madison": { "times_used": 2, "alive_users_used": 2 },
+      "Iowa State": { "times_used": 1, "alive_users_used": 1 },
+      "UConn": { "times_used": 1, "alive_users_used": 1 },
+      "Baylor": { "times_used": 1, "alive_users_used": 1 },
+      "Purdue": { "times_used": 1, "alive_users_used": 1 },
+      "Arizona": { "times_used": 1, "alive_users_used": 1 },
+      "San Diego State": { "times_used": 1, "alive_users_used": 1 },
+      "Clemson": { "times_used": 2, "alive_users_used": 2 },
+      "North Carolina": { "times_used": 1, "alive_users_used": 1 },
+      "Creighton": { "times_used": 2, "alive_users_used": 1 }
+    },
+    "remaining_teams_by_player": {
+      "Degen Dave": 28,
+      "YOLO Yolanda": 28,
+      "Mad Dog Martinez": 28,
+      "SweatyPalms Pete": 28,
+      "Chaos Carl": 28,
+      "Lucky Lucy": 28,
+      "Gut Feeling Greg": 28,
+      "SafeSpace Steve": 28,
+      "Steady Eddie": 28,
+      "Vanilla Vince": 28,
+      "Basic Brenda": 28,
+      "Template Tim": 28,
+      "Copycat Cathy": 28,
+      "NPC Nancy": 28
+    }
+  }
+}
