@@ -43,6 +43,25 @@ logger = logging.getLogger(__name__)
 # Fallback sentinel used when a stat cannot be computed (prevents JS null-deref)
 _BLANK_STAT = "—"
 
+# Picks that aren't real team selections (case-insensitive)
+_INVALID_PICK_NAMES = {"no pick", "no picks", ""}
+
+
+def _is_valid_pick(team: str | None) -> bool:
+    """Return True if the pick is a real team name (not blank or 'No Pick')."""
+    return bool(team) and team.strip().lower() not in _INVALID_PICK_NAMES
+
+
+def _is_pick_after_elimination(player: PlayerRecord, game_day: str) -> bool:
+    """Return True if this pick is for a day after the player was eliminated."""
+    if player.still_alive or not player.eliminated_on:
+        return False
+    if player.eliminated_on not in GAME_DAYS:
+        return False
+    elim_idx = GAME_DAYS.index(player.eliminated_on)
+    day_idx = GAME_DAYS.index(game_day)
+    return day_idx > elim_idx
+
 
 def export_site_data(
     client: SheetsClient,
@@ -304,10 +323,12 @@ def _compute_day_stats(
         eliminated_count = len(players) - survivors
 
     # most_picked_today: most-picked team on this day + win/loss/pending result
+    # Exclude "No Pick" entries and post-elimination picks
     pick_counts: Counter = Counter(
         p.picks.get(game_day)
         for p in players
-        if p.picks.get(game_day)
+        if _is_valid_pick(p.picks.get(game_day))
+        and not _is_pick_after_elimination(p, game_day)
     )
     if pick_counts:
         most_team, most_count = pick_counts.most_common(1)[0]
@@ -325,7 +346,7 @@ def _compute_day_stats(
             (p, p.picks[game_day], seeds_by_team.get(p.picks[game_day], 0))
             for p in players
             if p.still_alive
-            and p.picks.get(game_day)
+            and _is_valid_pick(p.picks.get(game_day))
             and seeds_by_team.get(p.picks[game_day], 0) > 0
         ]
         if degen_candidates:
@@ -351,7 +372,7 @@ def _compute_day_stats(
             (p, p.picks[game_day], seeds_by_team.get(p.picks[game_day], 0))
             for p in players
             if p.still_alive
-            and p.picks.get(game_day)
+            and _is_valid_pick(p.picks.get(game_day))
             and p.picks[game_day] not in losers_set
             and seeds_by_team.get(p.picks[game_day], 0) > 0
         ]
@@ -376,7 +397,7 @@ def _compute_day_stats(
             p.picks[game_day]
             for p in players
             if p.eliminated_on == game_day
-            and p.picks.get(game_day)
+            and _is_valid_pick(p.picks.get(game_day))
             and p.picks[game_day] in losers_set
         )
         if elim_by_team:
@@ -394,7 +415,7 @@ def _compute_day_stats(
             (p, p.picks[game_day], seeds_by_team.get(p.picks[game_day], 99))
             for p in players
             if p.still_alive
-            and p.picks.get(game_day)
+            and _is_valid_pick(p.picks.get(game_day))
             and seeds_by_team.get(p.picks[game_day], 0) > 0
         ]
         if chalk_candidates:
@@ -433,8 +454,10 @@ def _build_players_json(
         picks_array = []
         for day in GAME_DAYS:
             team = p.picks.get(day)
-            if not team:
-                continue  # only include days with an actual pick
+            if not _is_valid_pick(team):
+                continue  # skip blank / "No Pick" entries
+            if _is_pick_after_elimination(p, day):
+                continue  # skip picks submitted after elimination
             day_num = GAME_DAYS.index(day) + 1
             status = p.pick_statuses.get(day)
             if day in days_with_results_set:
@@ -524,11 +547,12 @@ def _compute_predictions(
     alive = [p for p in players if p.still_alive]
 
     def _used_teams(player: PlayerRecord) -> set[str]:
-        """Teams used by this player across completed days."""
+        """Teams used by this player across completed days (valid picks only)."""
         return {
             player.picks[day]
             for day in days_with_results
-            if player.picks.get(day)
+            if _is_valid_pick(player.picks.get(day))
+            and not _is_pick_after_elimination(player, day)
         }
 
     # remaining_teams_by_player: surviving tournament teams minus already-used picks

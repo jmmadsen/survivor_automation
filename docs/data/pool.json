@@ -1,5 +1,5 @@
 {
-  "exported_at": "2026-03-21T17:05:22.613125+00:00",
+  "exported_at": "2026-03-21T17:21:30.459236+00:00",
   "meta": {
     "pool_name": "Temple's Madness Survivor Pool 2026",
     "season": 2026,
@@ -10,7 +10,7 @@
     "current_day": 3,
     "total_days": 10,
     "pot": 2750,
-    "last_updated": "2026-03-21T17:05:22.613125+00:00"
+    "last_updated": "2026-03-21T17:21:30.459236+00:00"
   },
   "team_seeds": {
     "Akron": 12,
@@ -285,7 +285,7 @@
       "stats": {
         "most_picked_today": {
           "team": "Virginia",
-          "count": 25,
+          "count": 20,
           "result": "win"
         },
         "biggest_degen_pick": {
@@ -2817,18 +2817,6 @@
           "team": "South Florida",
           "seed": 11,
           "result": "loss"
-        },
-        {
-          "day": 2,
-          "team": "UCLA",
-          "seed": 7,
-          "result": "win"
-        },
-        {
-          "day": 3,
-          "team": "No Pick",
-          "seed": 0,
-          "result": "pending"
         }
       ],
       "eliminated_day": 1
@@ -2844,18 +2832,6 @@
           "team": "Wisconsin",
           "seed": 5,
           "result": "loss"
-        },
-        {
-          "day": 2,
-          "team": "UCLA",
-          "seed": 7,
-          "result": "win"
-        },
-        {
-          "day": 3,
-          "team": "No Pick",
-          "seed": 0,
-          "result": "pending"
         }
       ],
       "eliminated_day": 1
@@ -2871,18 +2847,6 @@
           "team": "Wisconsin",
           "seed": 5,
           "result": "loss"
-        },
-        {
-          "day": 2,
-          "team": "Tennessee",
-          "seed": 6,
-          "result": "win"
-        },
-        {
-          "day": 3,
-          "team": "No Pick",
-          "seed": 0,
-          "result": "pending"
         }
       ],
       "eliminated_day": 1
@@ -2898,18 +2862,6 @@
           "team": "Wisconsin",
           "seed": 5,
           "result": "loss"
-        },
-        {
-          "day": 2,
-          "team": "St. John's",
-          "seed": 5,
-          "result": "win"
-        },
-        {
-          "day": 3,
-          "team": "No Pick",
-          "seed": 0,
-          "result": "pending"
         }
       ],
       "eliminated_day": 1
@@ -2925,18 +2877,6 @@
           "team": "BYU",
           "seed": 6,
           "result": "loss"
-        },
-        {
-          "day": 2,
-          "team": "Texas Tech",
-          "seed": 5,
-          "result": "win"
-        },
-        {
-          "day": 3,
-          "team": "No Pick",
-          "seed": 0,
-          "result": "pending"
         }
       ],
       "eliminated_day": 1
@@ -2952,18 +2892,6 @@
           "team": "Troy",
           "seed": 13,
           "result": "loss"
-        },
-        {
-          "day": 2,
-          "team": "Texas Tech",
-          "seed": 5,
-          "result": "win"
-        },
-        {
-          "day": 3,
-          "team": "No Pick",
-          "seed": 0,
-          "result": "pending"
         }
       ],
       "eliminated_day": 1
@@ -2979,18 +2907,6 @@
           "team": "Wisconsin",
           "seed": 5,
           "result": "loss"
-        },
-        {
-          "day": 2,
-          "team": "Texas Tech",
-          "seed": 5,
-          "result": "win"
-        },
-        {
-          "day": 3,
-          "team": "No Pick",
-          "seed": 0,
-          "result": "pending"
         }
       ],
       "eliminated_day": 1
@@ -3006,18 +2922,6 @@
           "team": "North Carolina",
           "seed": 6,
           "result": "loss"
-        },
-        {
-          "day": 2,
-          "team": "Texas Tech",
-          "seed": 5,
-          "result": "win"
-        },
-        {
-          "day": 3,
-          "team": "No Pick",
-          "seed": 0,
-          "result": "pending"
         }
       ],
       "eliminated_day": 1
@@ -3033,18 +2937,6 @@
           "team": "Saint Mary's",
           "seed": 7,
           "result": "loss"
-        },
-        {
-          "day": 2,
-          "team": "Kansas",
-          "seed": 4,
-          "result": "win"
-        },
-        {
-          "day": 3,
-          "team": "No Pick",
-          "seed": 0,
-          "result": "pending"
         }
       ],
       "eliminated_day": 1
@@ -3060,18 +2952,6 @@
           "team": "Wisconsin",
           "seed": 5,
           "result": "loss"
-        },
-        {
-          "day": 2,
-          "team": "Alabama",
-          "seed": 4,
-          "result": "win"
-        },
-        {
-          "day": 3,
-          "team": "No Pick",
-          "seed": 0,
-          "result": "pending"
         }
       ],
       "eliminated_day": 1
@@ -3087,18 +2967,6 @@
           "team": "Wisconsin",
           "seed": 5,
           "result": "loss"
-        },
-        {
-          "day": 2,
-          "team": "Virginia",
-          "seed": 3,
-          "result": "win"
-        },
-        {
-          "day": 3,
-          "team": "No Pick",
-          "seed": 0,
-          "result": "pending"
         }
       ],
       "eliminated_day": 1
@@ -3114,18 +2982,6 @@
           "team": "Wisconsin",
           "seed": 5,
           "result": "loss"
-        },
-        {
-          "day": 2,
-          "team": "Virginia",
-          "seed": 3,
-          "result": "win"
-        },
-        {
-          "day": 3,
-          "team": "No Pick",
-          "seed": 0,
-          "result": "pending"
         }
       ],
       "eliminated_day": 1
@@ -3141,18 +2997,6 @@
           "team": "Saint Mary's",
           "seed": 7,
           "result": "loss"
-        },
-        {
-          "day": 2,
-          "team": "Virginia",
-          "seed": 3,
-          "result": "win"
-        },
-        {
-          "day": 3,
-          "team": "No Pick",
-          "seed": 0,
-          "result": "pending"
         }
       ],
       "eliminated_day": 1
@@ -3168,18 +3012,6 @@
           "team": "Wisconsin",
           "seed": 5,
           "result": "loss"
-        },
-        {
-          "day": 2,
-          "team": "Virginia",
-          "seed": 3,
-          "result": "win"
-        },
-        {
-          "day": 3,
-          "team": "No Pick",
-          "seed": 0,
-          "result": "pending"
         }
       ],
       "eliminated_day": 1
@@ -3195,18 +3027,6 @@
           "team": "Georgia",
           "seed": 8,
           "result": "loss"
-        },
-        {
-          "day": 2,
-          "team": "Virginia",
-          "seed": 3,
-          "result": "win"
-        },
-        {
-          "day": 3,
-          "team": "No Pick",
-          "seed": 0,
-          "result": "pending"
         }
       ],
       "eliminated_day": 1
@@ -3222,18 +3042,6 @@
           "team": "Wisconsin",
           "seed": 5,
           "result": "loss"
-        },
-        {
-          "day": 2,
-          "team": "Iowa State",
-          "seed": 2,
-          "result": "win"
-        },
-        {
-          "day": 3,
-          "team": "No Pick",
-          "seed": 0,
-          "result": "pending"
         }
       ],
       "eliminated_day": 1
@@ -6269,7 +6077,7 @@
     },
     "pick_overlap": {
       "Alabama": {
-        "times_used": 13,
+        "times_used": 12,
         "alive_users_used": 12
       },
       "Arizona": {
@@ -6309,11 +6117,11 @@
         "alive_users_used": 0
       },
       "Iowa State": {
-        "times_used": 3,
+        "times_used": 2,
         "alive_users_used": 2
       },
       "Kansas": {
-        "times_used": 17,
+        "times_used": 16,
         "alive_users_used": 16
       },
       "Kentucky": {
@@ -6349,7 +6157,7 @@
         "alive_users_used": 1
       },
       "St. John's": {
-        "times_used": 16,
+        "times_used": 15,
         "alive_users_used": 15
       },
       "TCU": {
@@ -6357,7 +6165,7 @@
         "alive_users_used": 2
       },
       "Tennessee": {
-        "times_used": 5,
+        "times_used": 4,
         "alive_users_used": 4
       },
       "Texas": {
@@ -6369,11 +6177,11 @@
         "alive_users_used": 0
       },
       "Texas Tech": {
-        "times_used": 10,
+        "times_used": 6,
         "alive_users_used": 6
       },
       "UCLA": {
-        "times_used": 6,
+        "times_used": 4,
         "alive_users_used": 4
       },
       "UConn": {
@@ -6393,7 +6201,7 @@
         "alive_users_used": 17
       },
       "Virginia": {
-        "times_used": 25,
+        "times_used": 20,
         "alive_users_used": 20
       }
     }
