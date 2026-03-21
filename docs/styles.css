@@ -1397,13 +1397,15 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(239, 68, 68, 0.2);
-  animation: deathFlash 0.5s ease-out forwards;
+  border-radius: inherit;
+  background: var(--bg-card-hover, #1e2538);
+  animation: deathBgFlash 0.5s ease-out forwards;
 }
 
-@keyframes deathFlash {
-  0%   { background: rgba(239, 68, 68, 0.3); }
-  100% { background: transparent; }
+@keyframes deathBgFlash {
+  0%   { background: rgba(239, 68, 68, 0.35); }
+  30%  { background: rgba(239, 68, 68, 0.15); }
+  100% { background: var(--bg-card-hover, #1e2538); }
 }
 
 @keyframes deathOverlayIn {
