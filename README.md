@@ -224,3 +224,34 @@ Applies to both the Formatted (private) and Public Picks sheets.
 | White cell | No pick submitted; future round not yet relevant |
 
 Pick coloring is only applied to columns where final results have been loaded into the Teams & Results sheet. Picks after a player's elimination are hidden entirely.
+
+---
+
+## Jacob's Visualization Dashboard
+
+An interactive GitHub Pages site that visualizes survivor pool data — leaderboard, stats, charts, player profiles, and fun superlatives. Linked from daily emails so participants can check standings on their phones.
+
+### One-Time Setup
+
+1. Enable GitHub Pages: repo **Settings → Pages → Source: Deploy from branch → Branch: `main`, folder: `/docs`** → Save
+2. Your dashboard will be live at `https://<username>.github.io/survivor_automation/`
+
+### Daily Update
+
+After running your normal workflow (`run-all` + `publish`), export and push the dashboard data:
+
+```bash
+python main.py export-site
+git add docs/data/pool.json
+git commit -m "update dashboard data"
+git push
+```
+
+Or just tell Claude: **"deploy update"** — see CLAUDE.md for details.
+
+### What's On the Dashboard
+
+- **Home** — Alive count, prize pot, daily recap, survival curve, superlatives
+- **Leaderboard** — Sortable standings with expandable pick history
+- **Stats** — Pick distribution charts, survival curve, risk analysis
+- **Players** — Search any player, see their full profile and pick timeline

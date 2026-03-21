@@ -23,6 +23,7 @@ from src.formatted_builder import build_formatted_sheet
 from src.publisher import publish_picks, reset_public_sheet
 from src.roster_sync import populate_master_roster
 from src.sheets_client import SheetsClient
+from src.site_exporter import export_site_data
 
 
 def setup_logging(verbose: bool = False) -> None:
@@ -226,6 +227,10 @@ def cmd_run_all(args, private_client: SheetsClient) -> None:
     print("\nDone. Run 'python main.py publish' when ready to share picks with participants.")
 
 
+def cmd_export_site(args, private_client: SheetsClient) -> None:
+    export_site_data(private_client, args.output)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="March Madness Survivor Pool Automation",
@@ -307,6 +312,16 @@ def main() -> None:
         help="Verify Google Sheets auth and ESPN API connectivity (read-only)",
     )
 
+    # export-site
+    p_export = sub.add_parser(
+        "export-site",
+        help="Export pool data as JSON for the GitHub Pages dashboard",
+    )
+    p_export.add_argument(
+        "--output", default="docs/data/pool.json",
+        help="Output path for the JSON file (default: docs/data/pool.json)",
+    )
+
     args = parser.parse_args()
     setup_logging(args.verbose)
 
@@ -331,6 +346,8 @@ def main() -> None:
         cmd_reset_public(args, private_client, public_client)
     elif args.command == "test-connection":
         cmd_test_connection(args, private_client)
+    elif args.command == "export-site":
+        cmd_export_site(args, private_client)
 
 
 if __name__ == "__main__":

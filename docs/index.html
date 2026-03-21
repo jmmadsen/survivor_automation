@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Temple's Madness Survivor Pool</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Desktop top nav -->
+  <nav class="top-nav" id="topNav">
+    <div class="top-nav-brand">
+      <span class="brand-icon">&#127936;</span>
+      <span class="brand-text">SURVIVOR POOL</span>
+    </div>
+    <div class="top-nav-tabs">
+      <button class="top-tab active" data-tab="home">Home</button>
+      <button class="top-tab" data-tab="board">Board</button>
+      <button class="top-tab" data-tab="stats">Stats</button>
+      <button class="top-tab" data-tab="players">Players</button>
+    </div>
+    <div class="top-nav-meta">
+      <span class="nav-pot" id="navPot">$500</span>
+    </div>
+  </nav>
+
+  <main class="app-main">
+    <!-- ========== HOME TAB ========== -->
+    <section class="tab-content active" id="tab-home">
+      <!-- Hero Banner -->
+      <div class="hero">
+        <div class="hero-bg-pattern"></div>
+        <div class="hero-content">
+          <h1 class="hero-title">TEMPLE'S MADNESS<br>SURVIVOR POOL</h1>
+          <div class="hero-stats">
+            <div class="hero-stat">
+              <span class="hero-stat-value" id="heroAlive">14</span>
+              <span class="hero-stat-label">of <span id="heroTotal">20</span> survive</span>
+            </div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+              <span class="hero-stat-value" id="heroDay">Day 2</span>
+              <span class="hero-stat-label">of 10</span>
+            </div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+              <span class="hero-stat-value" id="heroPot">$500</span>
+              <span class="hero-stat-label">prize pot</span>
+            </div>
+          </div>
+          <div class="hero-alive-bar">
+            <div class="hero-alive-fill" id="heroAliveBar" style="width: 70%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Search -->
+      <div class="search-container home-search">
+        <div class="search-wrapper">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <input type="text" class="search-input" id="homeSearch" placeholder="Find your name..." autocomplete="off">
+        </div>
+        <div class="search-results" id="homeSearchResults"></div>
+      </div>
+
+      <!-- Daily Recap -->
+      <div class="card recap-card" id="recapCard">
+        <div class="card-header">
+          <span class="card-label">DAILY RECAP</span>
+          <span class="card-day" id="recapDay">Day 2</span>
+        </div>
+        <div class="recap-body" id="recapBody">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <!-- Top 3 Preview -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-label">DEGEN LEADERBOARD</span>
+          <button class="card-link" data-goto="board">See all &rarr;</button>
+        </div>
+        <div class="top3" id="top3">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <!-- Survival Curve -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-label">SURVIVAL CURVE</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="homeSurvivalChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Superlative Awards -->
+      <div class="superlatives-grid" id="superlativesGrid">
+        <!-- Filled by JS -->
+      </div>
+    </section>
+
+    <!-- ========== BOARD TAB ========== -->
+    <section class="tab-content" id="tab-board">
+      <div class="section-header">
+        <h2 class="section-title">LEADERBOARD</h2>
+      </div>
+
+      <!-- Search + Filters -->
+      <div class="search-container">
+        <div class="search-wrapper">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <input type="text" class="search-input" id="boardSearch" placeholder="Search players..." autocomplete="off">
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="alive">
+          <span class="status-dot alive"></span> Alive
+        </button>
+        <button class="filter-btn" data-filter="eliminated">
+          <span class="status-dot eliminated"></span> Eliminated
+        </button>
+      </div>
+
+      <div class="leaderboard-table" id="leaderboardTable">
+        <div class="table-header">
+          <div class="th th-rank" data-sort="rank">#</div>
+          <div class="th th-name" data-sort="name">Player</div>
+          <div class="th th-score" data-sort="degen_score">Degen</div>
+          <div class="th th-status" data-sort="status">Status</div>
+        </div>
+        <div class="table-body" id="tableBody">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== STATS TAB ========== -->
+    <section class="tab-content" id="tab-stats">
+      <div class="section-header">
+        <h2 class="section-title">STATS CENTER</h2>
+      </div>
+
+      <!-- Day Selector -->
+      <div class="day-selector">
+        <label class="day-label" for="daySelect">Game Day:</label>
+        <select class="day-select" id="daySelect">
+          <!-- Filled by JS -->
+        </select>
+      </div>
+
+      <!-- Pick Distribution Chart -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-label">PICK DISTRIBUTION</span>
+        </div>
+        <div class="chart-container chart-tall">
+          <canvas id="pickDistChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Survival Curve Full -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-label">SURVIVAL CURVE</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="statsSurvivalChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Pick Overlap -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-label">PICK OVERLAP</span>
+          <span class="card-sub">Teams used by alive players</span>
+        </div>
+        <div class="overlap-list" id="overlapList">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <!-- Seed Distribution -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-label">SEED DISTRIBUTION</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="seedDistChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Predictions & Risk -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-label">DANGER ZONE</span>
+          <span class="card-sub">Players with fewest remaining team options</span>
+        </div>
+        <div class="risk-list" id="riskList">
+          <!-- Filled by JS -->
+        </div>
+        <p class="risk-disclaimer">For entertainment only. Not actual predictions.</p>
+      </div>
+    </section>
+
+    <!-- ========== PLAYERS TAB ========== -->
+    <section class="tab-content" id="tab-players">
+      <div class="section-header">
+        <h2 class="section-title">PLAYER LOOKUP</h2>
+      </div>
+
+      <!-- Player Search -->
+      <div class="search-container">
+        <div class="search-wrapper">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <input type="text" class="search-input" id="playerSearch" placeholder="Type a player name..." autocomplete="off">
+        </div>
+        <div class="search-dropdown" id="playerDropdown">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <!-- Player Card (hidden until search) -->
+      <div class="player-card" id="playerCard" style="display:none;">
+        <div class="player-card-header">
+          <div class="player-avatar" id="playerAvatar">D</div>
+          <div class="player-info">
+            <h3 class="player-name" id="playerName">Degen Dave</h3>
+            <div class="player-meta">
+              <span class="player-status" id="playerStatus">ALIVE</span>
+              <span class="player-rank" id="playerRank">Rank #1</span>
+            </div>
+          </div>
+          <div class="player-degen-badge">
+            <span class="degen-value" id="playerDegenScore">26</span>
+            <span class="degen-label">DEGEN</span>
+          </div>
+        </div>
+
+        <div class="player-section">
+          <h4 class="player-section-title">PICK TIMELINE</h4>
+          <div class="pick-timeline" id="playerTimeline">
+            <!-- Filled by JS -->
+          </div>
+        </div>
+
+        <div class="player-section">
+          <h4 class="player-section-title">DEGEN BREAKDOWN</h4>
+          <div class="degen-breakdown" id="degenBreakdown">
+            <!-- Filled by JS -->
+          </div>
+          <div class="avg-seed" id="avgSeed">
+            <!-- Filled by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Prompt when no player selected -->
+      <div class="player-prompt" id="playerPrompt">
+        <div class="prompt-icon">&#128270;</div>
+        <p class="prompt-text">Search for a player above to see their full profile, pick history, and degen score breakdown.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Mobile Bottom Tab Bar -->
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="bottom-tab active" data-tab="home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+      <span>Home</span>
+    </button>
+    <button class="bottom-tab" data-tab="board">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="8" y1="6" x2="21" y2="6"></line>
+        <line x1="8" y1="12" x2="21" y2="12"></line>
+        <line x1="8" y1="18" x2="21" y2="18"></line>
+        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+      </svg>
+      <span>Board</span>
+    </button>
+    <button class="bottom-tab" data-tab="stats">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="20" x2="18" y2="10"></line>
+        <line x1="12" y1="20" x2="12" y2="4"></line>
+        <line x1="6" y1="20" x2="6" y2="14"></line>
+      </svg>
+      <span>Stats</span>
+    </button>
+    <button class="bottom-tab" data-tab="players">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
+      <span>Players</span>
+    </button>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+</html>
