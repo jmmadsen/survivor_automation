@@ -61,6 +61,12 @@ def export_site_data(
     master_data = _read_master(client)
     days_with_results = [day for day in GAME_DAYS if losers_by_day.get(day)]
 
+    # Detect pending days: days ≤ today with picks submitted but no results yet
+    pending_days = _detect_pending_days(master_data, days_with_results)
+
+    # All days to show on the dashboard (completed + pending)
+    all_display_days = days_with_results + pending_days
+
     # Build and sort player records (seeds_by_team drives degen scores)
     players = _build_player_records(
         master_data, available_by_day, losers_by_day,
@@ -72,6 +78,7 @@ def export_site_data(
     daily_results = _build_daily_results(
         days_with_results, seeds_by_team,
         available_by_day, losers_by_day, players_sorted,
+        pending_days=pending_days,
     )
 
     # ---- 3. Build players array (new schema) --------------------------------
@@ -83,7 +90,7 @@ def export_site_data(
     # ---- 5. Assemble and write JSON ----------------------------------------
     payload = {
         "exported_at": datetime.now(timezone.utc).isoformat(),
-        "meta": _build_meta(players_sorted, days_with_results),
+        "meta": _build_meta(players_sorted, all_display_days),
         "team_seeds": seeds_by_team,
         "daily_results": daily_results,
         "players": players_json,
@@ -97,14 +104,45 @@ def export_site_data(
         json.dump(payload, fh, indent=2, ensure_ascii=False)
 
     alive_count = sum(1 for p in players_sorted if p.still_alive)
+    pending_info = f", {len(pending_days)} pending" if pending_days else ""
     print(f"Exported site data to {output_path} "
           f"({len(players_sorted)} players, {alive_count} alive, "
-          f"{len(days_with_results)} completed days)")
+          f"{len(days_with_results)} completed days{pending_info})")
 
 
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
+def _detect_pending_days(
+    master_data: list[dict],
+    days_with_results: list[str],
+) -> list[str]:
+    """
+    Find game days that are pending: ≤ today, have picks submitted, but no
+    results yet.  Returns them in GAME_DAYS order.
+    """
+    completed_set = set(days_with_results)
+    today_iso = datetime.now().strftime("%Y-%m-%d")
+
+    pending = []
+    for day in GAME_DAYS:
+        iso = GAME_DAY_ISO_DATES.get(day, "")
+        if not iso or iso > today_iso:
+            break  # future day — stop here
+        if day in completed_set:
+            continue  # already has results
+        # Check if any player has a pick for this day
+        pick_col = f"Pick {day}"
+        has_picks = any(
+            row.get(pick_col, "").strip()
+            for row in master_data
+        )
+        if has_picks:
+            pending.append(day)
+
+    return pending
+
 
 def _build_meta(players: list[PlayerRecord], days_with_results: list[str]) -> dict:
     """Build the meta object the frontend hero section reads."""
@@ -131,59 +169,89 @@ def _build_daily_results(
     available_by_day: dict[str, list[str]],
     losers_by_day: dict[str, list[str]],
     players: list[PlayerRecord],
+    pending_days: list[str] | None = None,
 ) -> list[dict]:
     """
-    Build the daily_results array (one entry per completed day).
+    Build the daily_results array (one entry per completed + pending day).
 
-    Each entry includes available_teams, winners, losers, upsets, and
+    Each entry includes available_teams, winners, losers, upsets, status, and
     per-day stats that the frontend recap text and superlatives cards read.
+    Pending days (picks submitted, no results yet) get status="pending".
     """
     results = []
+    pending_set = set(pending_days or [])
 
-    for day in days_with_results:
+    # Combine completed and pending days in GAME_DAYS order
+    all_days = []
+    for day in GAME_DAYS:
+        if day in days_with_results or day in pending_set:
+            all_days.append(day)
+
+    for day in all_days:
+        is_pending = day in pending_set
         espn_date = GAME_DAY_TO_ESPN_DATE.get(day)
         day_num = GAME_DAYS.index(day) + 1
 
-        # Fetch ESPN game data for upset detection
-        game_results = []
-        if espn_date:
-            try:
-                game_results = fetch_games_for_day(day, espn_date)
-            except RuntimeError:
-                logger.warning(f"Could not fetch ESPN results for {day}")
-
         available = available_by_day.get(day, [])
-        losers = losers_by_day.get(day, [])
-        losers_set = set(losers)
-        winners = [t for t in available if t not in losers_set]
 
-        # Upsets: winner seed > loser seed by ≥ 3
-        upsets = []
-        for g in game_results:
-            if not g.is_final:
-                continue
-            winner_seed = seeds_by_team.get(g.winner, 0)
-            loser_seed = seeds_by_team.get(g.loser, 0)
-            if winner_seed > 0 and loser_seed > 0 and (winner_seed - loser_seed) >= 3:
-                upsets.append({
-                    "winner": g.winner,
-                    "winner_seed": winner_seed,
-                    "loser": g.loser,
-                    "loser_seed": loser_seed,
-                })
+        if is_pending:
+            # Pending day: no results yet, just picks and pick-based stats
+            stats = _compute_day_stats(
+                day, day_num, players, losers_by_day, seeds_by_team,
+                is_pending=True,
+            )
+            results.append({
+                "day": day_num,
+                "date": GAME_DAY_ISO_DATES.get(day, ""),
+                "label": GAME_DAY_LABELS.get(day, day),
+                "status": "pending",
+                "available_teams": sorted(available),
+                "winners": [],
+                "losers": [],
+                "upsets": [],
+                "stats": stats,
+            })
+        else:
+            # Completed day: full results
+            game_results = []
+            if espn_date:
+                try:
+                    game_results = fetch_games_for_day(day, espn_date)
+                except RuntimeError:
+                    logger.warning(f"Could not fetch ESPN results for {day}")
 
-        stats = _compute_day_stats(day, day_num, players, losers_by_day, seeds_by_team)
+            losers = losers_by_day.get(day, [])
+            losers_set = set(losers)
+            winners = [t for t in available if t not in losers_set]
 
-        results.append({
-            "day": day_num,
-            "date": GAME_DAY_ISO_DATES.get(day, ""),
-            "label": GAME_DAY_LABELS.get(day, day),
-            "available_teams": sorted(available),
-            "winners": sorted(winners),
-            "losers": sorted(losers),
-            "upsets": upsets,
-            "stats": stats,
-        })
+            # Upsets: winner seed > loser seed by ≥ 3
+            upsets = []
+            for g in game_results:
+                if not g.is_final:
+                    continue
+                winner_seed = seeds_by_team.get(g.winner, 0)
+                loser_seed = seeds_by_team.get(g.loser, 0)
+                if winner_seed > 0 and loser_seed > 0 and (winner_seed - loser_seed) >= 3:
+                    upsets.append({
+                        "winner": g.winner,
+                        "winner_seed": winner_seed,
+                        "loser": g.loser,
+                        "loser_seed": loser_seed,
+                    })
+
+            stats = _compute_day_stats(day, day_num, players, losers_by_day, seeds_by_team)
+
+            results.append({
+                "day": day_num,
+                "date": GAME_DAY_ISO_DATES.get(day, ""),
+                "label": GAME_DAY_LABELS.get(day, day),
+                "status": "final",
+                "available_teams": sorted(available),
+                "winners": sorted(winners),
+                "losers": sorted(losers),
+                "upsets": upsets,
+                "stats": stats,
+            })
 
     return results
 
@@ -194,6 +262,7 @@ def _compute_day_stats(
     players: list[PlayerRecord],
     losers_by_day: dict[str, list[str]],
     seeds_by_team: dict[str, int],
+    is_pending: bool = False,
 ) -> dict:
     """
     Compute per-day stats for the frontend recap text and superlative cards.
@@ -201,21 +270,40 @@ def _compute_day_stats(
     Keys must match exactly what app.js reads:
       most_picked_today, biggest_degen_pick, deadliest_team, chalk_king,
       survivors, eliminated
+
+    When is_pending=True, only pick-based stats are computed; result-based
+    stats (deadliest_team, chalk_king) return blanks.
     """
     losers_set = set(losers_by_day.get(game_day, []))
     day_idx = GAME_DAYS.index(game_day)
 
-    # survivors / eliminated: cumulative counts after this day
-    survivors = sum(
-        1 for p in players
-        if p.still_alive or (
-            p.eliminated_on and p.eliminated_on in GAME_DAYS
-            and GAME_DAYS.index(p.eliminated_on) > day_idx
+    if is_pending:
+        # For pending days, carry forward survivor count from previous day
+        # (no one has been eliminated on this day yet)
+        prev_day_idx = day_idx - 1
+        if prev_day_idx >= 0:
+            survivors = sum(
+                1 for p in players
+                if p.still_alive or (
+                    p.eliminated_on and p.eliminated_on in GAME_DAYS
+                    and GAME_DAYS.index(p.eliminated_on) > prev_day_idx
+                )
+            )
+        else:
+            survivors = len(players)
+        eliminated_count = len(players) - survivors
+    else:
+        # survivors / eliminated: cumulative counts after this day
+        survivors = sum(
+            1 for p in players
+            if p.still_alive or (
+                p.eliminated_on and p.eliminated_on in GAME_DAYS
+                and GAME_DAYS.index(p.eliminated_on) > day_idx
+            )
         )
-    )
-    eliminated_count = len(players) - survivors
+        eliminated_count = len(players) - survivors
 
-    # most_picked_today: most-picked team on this day + win/loss result
+    # most_picked_today: most-picked team on this day + win/loss/pending result
     pick_counts: Counter = Counter(
         p.picks.get(game_day)
         for p in players
@@ -223,67 +311,97 @@ def _compute_day_stats(
     )
     if pick_counts:
         most_team, most_count = pick_counts.most_common(1)[0]
-        most_result = "loss" if most_team in losers_set else "win"
+        if is_pending:
+            most_result = "pending"
+        else:
+            most_result = "loss" if most_team in losers_set else "win"
         most_picked = {"team": most_team, "count": most_count, "result": most_result}
     else:
         most_picked = {"team": _BLANK_STAT, "count": 0, "result": "pending"}
 
-    # biggest_degen_pick: alive player with highest-seed correct pick today
-    correct_alive = [
-        (p, p.picks[game_day], seeds_by_team.get(p.picks[game_day], 0))
-        for p in players
-        if p.still_alive
-        and p.picks.get(game_day)
-        and p.picks[game_day] not in losers_set
-        and seeds_by_team.get(p.picks[game_day], 0) > 0
-    ]
-    if correct_alive:
-        degen_p, degen_team, degen_seed = max(correct_alive, key=lambda x: x[2])
-        biggest_degen = {
-            "player": degen_p.name,
-            "team": degen_team,
-            "seed": degen_seed,
-            "result": "win",
-        }
-    else:
-        biggest_degen = {
-            "player": _BLANK_STAT,
-            "team": _BLANK_STAT,
-            "seed": 0,
-            "result": "pending",
-        }
+    if is_pending:
+        # For pending days: biggest degen = highest-seed pick (no result filter)
+        degen_candidates = [
+            (p, p.picks[game_day], seeds_by_team.get(p.picks[game_day], 0))
+            for p in players
+            if p.still_alive
+            and p.picks.get(game_day)
+            and seeds_by_team.get(p.picks[game_day], 0) > 0
+        ]
+        if degen_candidates:
+            degen_p, degen_team, degen_seed = max(degen_candidates, key=lambda x: x[2])
+            biggest_degen = {
+                "player": degen_p.name,
+                "team": degen_team,
+                "seed": degen_seed,
+                "result": "pending",
+            }
+        else:
+            biggest_degen = {
+                "player": _BLANK_STAT, "team": _BLANK_STAT,
+                "seed": 0, "result": "pending",
+            }
 
-    # deadliest_team: losing team that eliminated the most players this day
-    elim_by_team: Counter = Counter(
-        p.picks[game_day]
-        for p in players
-        if p.eliminated_on == game_day
-        and p.picks.get(game_day)
-        and p.picks[game_day] in losers_set
-    )
-    if elim_by_team:
-        deadliest, kills = elim_by_team.most_common(1)[0]
-        deadliest_stat = {
-            "team": deadliest,
-            "kills": kills,
-            "seed": seeds_by_team.get(deadliest, 0),
-        }
-    else:
+        # No results yet — can't determine deadliest or chalk king
         deadliest_stat = {"team": _BLANK_STAT, "kills": 0, "seed": 0}
-
-    # chalk_king: alive player who picked the lowest-seed (safest) team today
-    chalk_candidates = [
-        (p, p.picks[game_day], seeds_by_team.get(p.picks[game_day], 99))
-        for p in players
-        if p.still_alive
-        and p.picks.get(game_day)
-        and seeds_by_team.get(p.picks[game_day], 0) > 0
-    ]
-    if chalk_candidates:
-        chalk_p, chalk_team, chalk_seed = min(chalk_candidates, key=lambda x: x[2])
-        chalk_king = {"player": chalk_p.name, "team": chalk_team, "seed": chalk_seed}
-    else:
         chalk_king = {"player": _BLANK_STAT, "team": _BLANK_STAT, "seed": 0}
+    else:
+        # biggest_degen_pick: alive player with highest-seed correct pick today
+        correct_alive = [
+            (p, p.picks[game_day], seeds_by_team.get(p.picks[game_day], 0))
+            for p in players
+            if p.still_alive
+            and p.picks.get(game_day)
+            and p.picks[game_day] not in losers_set
+            and seeds_by_team.get(p.picks[game_day], 0) > 0
+        ]
+        if correct_alive:
+            degen_p, degen_team, degen_seed = max(correct_alive, key=lambda x: x[2])
+            biggest_degen = {
+                "player": degen_p.name,
+                "team": degen_team,
+                "seed": degen_seed,
+                "result": "win",
+            }
+        else:
+            biggest_degen = {
+                "player": _BLANK_STAT,
+                "team": _BLANK_STAT,
+                "seed": 0,
+                "result": "pending",
+            }
+
+        # deadliest_team: losing team that eliminated the most players this day
+        elim_by_team: Counter = Counter(
+            p.picks[game_day]
+            for p in players
+            if p.eliminated_on == game_day
+            and p.picks.get(game_day)
+            and p.picks[game_day] in losers_set
+        )
+        if elim_by_team:
+            deadliest, kills = elim_by_team.most_common(1)[0]
+            deadliest_stat = {
+                "team": deadliest,
+                "kills": kills,
+                "seed": seeds_by_team.get(deadliest, 0),
+            }
+        else:
+            deadliest_stat = {"team": _BLANK_STAT, "kills": 0, "seed": 0}
+
+        # chalk_king: alive player who picked the lowest-seed (safest) team today
+        chalk_candidates = [
+            (p, p.picks[game_day], seeds_by_team.get(p.picks[game_day], 99))
+            for p in players
+            if p.still_alive
+            and p.picks.get(game_day)
+            and seeds_by_team.get(p.picks[game_day], 0) > 0
+        ]
+        if chalk_candidates:
+            chalk_p, chalk_team, chalk_seed = min(chalk_candidates, key=lambda x: x[2])
+            chalk_king = {"player": chalk_p.name, "team": chalk_team, "seed": chalk_seed}
+        else:
+            chalk_king = {"player": _BLANK_STAT, "team": _BLANK_STAT, "seed": 0}
 
     return {
         "most_picked_today": most_picked,

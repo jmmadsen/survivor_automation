@@ -139,6 +139,24 @@
     }
     dateline.textContent = latestDay.date + ' \u2014 ' + latestDay.label.toUpperCase();
 
+    // Pending day — show pick-based preview instead of results recap
+    if (latestDay.status === 'pending') {
+      let out = `<p>Today's games haven't finished yet, but the picks are in. ` +
+        `<strong>${s.survivors}</strong> players are still alive heading into <strong>${latestDay.label}</strong>.</p>`;
+      if (s.most_picked_today && s.most_picked_today.team !== '\u2014') {
+        out += `<p><strong>${s.most_picked_today.team}</strong> is the most popular pick today with ` +
+          `<strong>${s.most_picked_today.count}</strong> player${s.most_picked_today.count > 1 ? 's' : ''} riding on them. `;
+        if (s.biggest_degen_pick && s.biggest_degen_pick.player !== '\u2014') {
+          out += `Meanwhile, <strong>${s.biggest_degen_pick.player}</strong> is going full degen with ` +
+            `${s.biggest_degen_pick.seed}-seed <strong>${s.biggest_degen_pick.team}</strong>. Bold move.`;
+        }
+        out += `</p>`;
+      }
+      out += `<p style="color:#fbbf24;font-style:italic;">Results will update once games are final.</p>`;
+      recapBody.innerHTML = out;
+      return;
+    }
+
     const prevElim = DATA.daily_results.length > 1
       ? DATA.daily_results[DATA.daily_results.length - 2].stats.eliminated
       : 0;
@@ -232,34 +250,44 @@
   }
 
   function renderSuperlatives() {
-    const latestDay = DATA.daily_results[DATA.daily_results.length - 1];
+    // For superlatives, use the latest day with final results (skip pending)
+    const finalDays = DATA.daily_results.filter(d => d.status !== 'pending');
+    const latestDay = finalDays.length > 0 ? finalDays[finalDays.length - 1] : DATA.daily_results[DATA.daily_results.length - 1];
     if (!latestDay) return;
     const s = latestDay.stats;
+    const isPending = latestDay.status === 'pending';
 
     const cards = [
       {
         emoji: '&#129297;',
-        title: 'DEGEN OF THE DAY',
+        title: isPending ? 'BOLDEST PICK' : 'DEGEN OF THE DAY',
         value: s.biggest_degen_pick.player,
-        sub: '#' + s.biggest_degen_pick.seed + ' ' + s.biggest_degen_pick.team
+        sub: s.biggest_degen_pick.seed > 0
+          ? '#' + s.biggest_degen_pick.seed + ' ' + s.biggest_degen_pick.team
+          : '\u2014'
       },
       {
         emoji: '&#128128;',
         title: 'DEADLIEST TEAM',
         value: s.deadliest_team.team,
-        sub: s.deadliest_team.kills + ' kill' + (s.deadliest_team.kills > 1 ? 's' : '')
+        sub: s.deadliest_team.kills > 0
+          ? s.deadliest_team.kills + ' kill' + (s.deadliest_team.kills > 1 ? 's' : '')
+          : isPending ? 'Pending' : '\u2014'
       },
       {
         emoji: '&#128076;',
         title: 'CHALK KING',
         value: s.chalk_king.player,
-        sub: '#' + s.chalk_king.seed + ' ' + s.chalk_king.team
+        sub: s.chalk_king.seed > 0
+          ? '#' + s.chalk_king.seed + ' ' + s.chalk_king.team
+          : isPending ? 'Pending' : '\u2014'
       },
       {
         emoji: '&#128293;',
         title: 'MOST POPULAR',
         value: s.most_picked_today.team,
-        sub: s.most_picked_today.count + ' picks — ' + s.most_picked_today.result
+        sub: s.most_picked_today.count + ' picks' +
+          (isPending ? ' — pending' : ' — ' + s.most_picked_today.result)
       }
     ];
 
@@ -452,7 +480,7 @@
     DATA.daily_results.forEach(d => {
       const opt = document.createElement('option');
       opt.value = d.day;
-      opt.textContent = d.label;
+      opt.textContent = d.label + (d.status === 'pending' ? ' (Pending)' : '');
       sel.appendChild(opt);
     });
     sel.value = DATA.daily_results[DATA.daily_results.length - 1].day;
