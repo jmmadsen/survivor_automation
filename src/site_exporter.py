@@ -78,7 +78,7 @@ def export_site_data(
     players_json = _build_players_json(players_sorted, days_with_results, seeds_by_team)
 
     # ---- 4. Compute predictions & risk data --------------------------------
-    predictions = _compute_predictions(players_sorted, seeds_by_team, days_with_results)
+    predictions = _compute_predictions(players_sorted, seeds_by_team, days_with_results, losers_by_day)
 
     # ---- 5. Assemble and write JSON ----------------------------------------
     payload = {
@@ -382,14 +382,23 @@ def _compute_predictions(
     players: list[PlayerRecord],
     seeds_by_team: dict[str, int],
     days_with_results: list[str],
+    losers_by_day: dict[str, list[str]] | None = None,
 ) -> dict:
     """
     Compute predictions & risk data.
 
-    - remaining_teams_by_player: for each alive player, teams they have NOT yet used
-    - pick_overlap: for each team, {"times_used": N, "alive_users_used": N}
+    - remaining_teams_by_player: for each alive player, tournament-surviving teams
+      they have NOT yet used (excludes teams eliminated from the bracket)
+    - pick_overlap: for each surviving team, {"times_used": N, "alive_users_used": N}
     """
-    all_teams = sorted(seeds_by_team.keys())
+    # Build set of all teams eliminated from the tournament
+    all_losers: set[str] = set()
+    if losers_by_day:
+        for day_losers in losers_by_day.values():
+            all_losers.update(day_losers)
+
+    # Only count teams still alive in the tournament
+    surviving_teams = sorted(t for t in seeds_by_team if t not in all_losers)
     alive = [p for p in players if p.still_alive]
 
     def _used_teams(player: PlayerRecord) -> set[str]:
@@ -400,11 +409,11 @@ def _compute_predictions(
             if player.picks.get(day)
         }
 
-    # remaining_teams_by_player: only for alive players
+    # remaining_teams_by_player: surviving tournament teams minus already-used picks
     remaining_teams: dict[str, list[str]] = {}
     for p in alive:
         used = _used_teams(p)
-        remaining_teams[p.name] = sorted(t for t in all_teams if t not in used)
+        remaining_teams[p.name] = sorted(t for t in surviving_teams if t not in used)
 
     # pick_overlap: alive-only count (for the filter in the frontend)
     alive_overlap: Counter = Counter()
@@ -423,7 +432,7 @@ def _compute_predictions(
             "times_used": total_overlap.get(team, 0),
             "alive_users_used": alive_overlap.get(team, 0),
         }
-        for team in all_teams
+        for team in surviving_teams
     }
 
     return {
