@@ -1450,13 +1450,32 @@ body {
     0 3px 6px rgba(0, 0, 0, 0.6);
 }
 
-/* FATALITY — Mortal Kombat style */
+/* FATALITY — Mortal Kombat brutal style */
 .death-text.death-fatality {
-  font-size: 30px;
-  color: #ef4444;
+  font-family: var(--font-display);
+  font-size: 34px;
+  color: #cc0000;
+  letter-spacing: 8px;
   text-shadow:
-    0 0 15px rgba(239, 68, 68, 0.8),
-    0 0 40px rgba(239, 68, 68, 0.4);
+    0 0 10px rgba(204, 0, 0, 1),
+    0 0 30px rgba(204, 0, 0, 0.8),
+    0 0 60px rgba(180, 0, 0, 0.5),
+    0 4px 8px rgba(80, 0, 0, 0.9),
+    0 8px 16px rgba(60, 0, 0, 0.6);
+  animation: deathTextPop 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+             fatalityShake 0.08s ease-in-out 4 0.15s,
+             fatalityDrip 1.5s ease-in 0.5s forwards;
+}
+@keyframes fatalityShake {
+  0%, 100% { transform: translate(0); }
+  20% { transform: translate(-5px, 2px); }
+  40% { transform: translate(4px, -3px); }
+  60% { transform: translate(-3px, -1px); }
+  80% { transform: translate(5px, 2px); }
+}
+@keyframes fatalityDrip {
+  0% { text-shadow: 0 0 10px rgba(204,0,0,1), 0 0 30px rgba(204,0,0,0.8), 0 0 60px rgba(180,0,0,0.5), 0 4px 8px rgba(80,0,0,0.9), 0 8px 16px rgba(60,0,0,0.6); }
+  100% { text-shadow: 0 0 10px rgba(204,0,0,1), 0 0 30px rgba(204,0,0,0.8), 0 0 60px rgba(180,0,0,0.5), 0 12px 6px rgba(120,0,0,0.9), 0 24px 12px rgba(80,0,0,0.4); }
 }
 
 /* ELIMINATED — gold treatment */
@@ -1512,13 +1531,13 @@ body {
 .death-text.death-marathon {
   font-family: 'Consolas', 'SF Mono', monospace;
   font-size: 22px;
-  color: #00ffc8;
+  color: #7fff00;
   letter-spacing: 4px;
   text-shadow:
-    0 0 8px rgba(0, 255, 200, 0.8),
-    0 0 25px rgba(0, 255, 200, 0.4),
-    0 0 50px rgba(0, 255, 200, 0.15);
-  border: 1px solid rgba(0, 255, 200, 0.3);
+    0 0 8px rgba(127, 255, 0, 0.8),
+    0 0 25px rgba(127, 255, 0, 0.4),
+    0 0 50px rgba(127, 255, 0, 0.15);
+  border: 1px solid rgba(127, 255, 0, 0.3);
   padding: 6px 16px;
   animation: deathTextPop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards,
              marathonFlicker 0.08s ease-in-out 3;
@@ -1566,6 +1585,69 @@ body {
 @keyframes timeOverBounce {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.08); }
+}
+
+/* Destiny — "YOUR LIGHT FADES AWAY" */
+.death-text.death-destiny {
+  font-family: 'Helvetica Neue', 'Arial', sans-serif;
+  font-size: 20px;
+  font-weight: 300;
+  color: #ffffff;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  text-shadow:
+    0 0 20px rgba(255, 255, 255, 0.6),
+    0 0 60px rgba(255, 255, 255, 0.2);
+  animation: deathTextPop 1s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+             destinyFade 2s ease-in-out infinite;
+}
+@keyframes destinyFade {
+  0%, 100% { opacity: 0.7; text-shadow: 0 0 20px rgba(255,255,255,0.6), 0 0 60px rgba(255,255,255,0.2); }
+  50% { opacity: 1; text-shadow: 0 0 30px rgba(255,255,255,0.8), 0 0 80px rgba(255,255,255,0.3); }
+}
+
+/* Oregon Trail — "You have died of dysentery" */
+.death-text.death-oregon {
+  font-family: 'Courier New', 'Consolas', monospace;
+  font-size: 16px;
+  font-weight: 400;
+  color: #33ff33;
+  letter-spacing: 1px;
+  text-transform: none;
+  text-shadow:
+    0 0 6px rgba(51, 255, 51, 0.6),
+    0 0 15px rgba(51, 255, 51, 0.2);
+  border: 1px solid rgba(51, 255, 51, 0.25);
+  padding: 8px 14px;
+  background: rgba(0, 20, 0, 0.5);
+  animation: deathTextPop 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+             oregonBlink 1s step-end infinite;
+}
+@keyframes oregonBlink {
+  0%, 100% { border-color: rgba(51, 255, 51, 0.25); }
+  50% { border-color: rgba(51, 255, 51, 0.6); }
+}
+
+/* Metal Gear Solid — "Snake? SNAKE??? SNAAAAAAAKKKEEEEE!!!!!" */
+.death-text.death-mgs {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: #c8b960;
+  letter-spacing: 2px;
+  text-shadow:
+    0 0 8px rgba(200, 185, 96, 0.6),
+    0 0 20px rgba(200, 185, 96, 0.2);
+  border: 2px solid rgba(200, 185, 96, 0.4);
+  padding: 8px 16px;
+  background: rgba(20, 25, 15, 0.6);
+  animation: deathTextPop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+             mgsStatic 0.15s ease-in-out 3;
+}
+@keyframes mgsStatic {
+  0%, 100% { opacity: 1; }
+  30% { opacity: 0.4; transform: translate(1px, -1px); }
+  60% { opacity: 0.7; transform: translate(-1px, 1px); }
 }
 
 /* ============================================
