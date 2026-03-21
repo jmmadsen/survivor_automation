@@ -492,35 +492,39 @@ body {
   align-items: center;
 }
 
-/* Recap card accent */
+/* Recap card — newspaper column style */
 .recap-card {
-  border-left: 3px solid var(--gold);
+  border-left: none;
+  border-top: 2px solid var(--border-medium);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.recap-dateline {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 10px;
 }
 
 .recap-body {
-  font-size: 14px;
-  line-height: 1.7;
+  font-size: 15px;
+  line-height: 1.75;
   color: var(--text-secondary);
+}
+
+.recap-body p {
+  margin-bottom: 10px;
+}
+
+.recap-body p:last-child {
+  margin-bottom: 0;
 }
 
 .recap-body strong {
   color: var(--text-primary);
-  font-weight: 600;
-}
-
-.recap-body .recap-highlight {
-  color: var(--gold);
   font-weight: 700;
-}
-
-.recap-body .recap-dead {
-  color: var(--red);
-  font-weight: 600;
-}
-
-.recap-body .recap-alive {
-  color: var(--green);
-  font-weight: 600;
 }
 
 /* ============================================
@@ -1067,6 +1071,7 @@ body {
    ============================================ */
 
 .player-card {
+  position: relative;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
@@ -1368,4 +1373,172 @@ body {
 
 .hidden {
   display: none !important;
+}
+
+/* ============================================
+   ELIMINATION ANIMATIONS (Board tab)
+   ============================================ */
+
+/* Flash overlay on expanded picks area */
+.elimination-flash {
+  animation: elimFlashBg 0.35s ease-out;
+}
+
+@keyframes elimFlashBg {
+  0%   { background-color: rgba(239, 68, 68, 0.35); }
+  100% { background-color: transparent; }
+}
+
+/* Shared death text base */
+.death-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  padding: 12px 0;
+  animation: deathTextIn 0.4s ease-out, deathTextOut 0.5s 1.0s ease-in forwards;
+  pointer-events: none;
+}
+
+@keyframes deathTextIn {
+  0%   { opacity: 0; transform: scale(1.6); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes deathTextOut {
+  0%   { opacity: 1; }
+  100% { opacity: 0; height: 0; padding: 0; margin: 0; overflow: hidden; }
+}
+
+/* WASTED — GTA-style desaturated gray with blur */
+.death-text.death-wasted {
+  font-size: 34px;
+  color: #8a8a8a;
+  transform: rotate(-2deg);
+  filter: blur(0.3px);
+  text-shadow:
+    0 0 8px rgba(138, 138, 138, 0.4),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* FATALITY — MK-style red glow */
+.death-text.death-fatality {
+  font-size: 32px;
+  color: #ef4444;
+  text-shadow:
+    0 0 10px rgba(239, 68, 68, 0.7),
+    0 0 30px rgba(239, 68, 68, 0.4),
+    0 0 50px rgba(239, 68, 68, 0.2);
+}
+
+/* ELIMINATED — gold w/ border treatment */
+.death-text.death-eliminated {
+  font-size: 28px;
+  color: var(--gold);
+  text-shadow: 0 0 12px rgba(251, 191, 36, 0.3);
+  border-top: 1px solid rgba(251, 191, 36, 0.3);
+  border-bottom: 1px solid rgba(251, 191, 36, 0.3);
+  padding: 8px 0;
+}
+
+/* RIP — muted, italic */
+.death-text.death-rip {
+  font-size: 30px;
+  color: #64748b;
+  font-style: italic;
+  letter-spacing: 8px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================
+   PLAYER CARD DEATH ANIMATION (Players tab)
+   ============================================ */
+
+/* Red flash + shake for eliminated player card */
+.player-card-death {
+  animation: playerDeathFlash 0.3s ease-out, playerDeathShake 0.4s ease-out;
+}
+
+@keyframes playerDeathFlash {
+  0%   { box-shadow: inset 0 0 60px rgba(239, 68, 68, 0.4); }
+  100% { box-shadow: none; }
+}
+
+@keyframes playerDeathShake {
+  0%, 100% { transform: translateX(0); }
+  15%      { transform: translateX(-4px); }
+  30%      { transform: translateX(4px); }
+  45%      { transform: translateX(-3px); }
+  60%      { transform: translateX(3px); }
+  75%      { transform: translateX(-1px); }
+  90%      { transform: translateX(1px); }
+}
+
+/* Eliminated overlay text on player card */
+.player-card-death-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 20, 25, 0.85);
+  z-index: 10;
+  pointer-events: none;
+  animation: playerOverlayIn 0.25s ease-out, playerOverlayOut 0.4s 0.8s ease-in forwards;
+}
+
+.player-card-death-overlay span {
+  font-family: var(--font-display);
+  font-size: 36px;
+  letter-spacing: 6px;
+  color: var(--red);
+  text-shadow:
+    0 0 12px rgba(239, 68, 68, 0.6),
+    0 0 30px rgba(239, 68, 68, 0.3);
+}
+
+@keyframes playerOverlayIn {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes playerOverlayOut {
+  0%   { opacity: 1; }
+  100% { opacity: 0; pointer-events: none; visibility: hidden; }
+}
+
+/* Green pulse for alive player card */
+.player-card-alive {
+  animation: alivePulse 0.6s ease-out;
+}
+
+@keyframes alivePulse {
+  0%   { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+  50%  { box-shadow: 0 0 20px 4px rgba(34, 197, 94, 0.15); }
+  100% { box-shadow: none; }
+}
+
+/* ============================================
+   VIEW FULL BOARD LINK
+   ============================================ */
+
+.view-full-board {
+  display: block;
+  text-align: center;
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gold);
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 8px;
+  font-family: var(--font-body);
+  transition: opacity var(--transition-fast);
+}
+
+.view-full-board:hover {
+  opacity: 0.8;
 }

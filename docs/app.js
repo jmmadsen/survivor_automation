@@ -108,8 +108,8 @@
     // Recap
     renderRecap();
 
-    // Top 3
-    renderTop3();
+    // Top players
+    renderTopPlayers();
 
     // Survival curve (small)
     renderSurvivalChart('homeSurvivalChart', false);
@@ -128,62 +128,106 @@
 
     setText('recapDay', latestDay.label);
 
+    // Add dateline above the body
+    const recapCard = document.getElementById('recapCard');
+    const recapBody = document.getElementById('recapBody');
+    let dateline = recapCard.querySelector('.recap-dateline');
+    if (!dateline) {
+      dateline = document.createElement('div');
+      dateline.className = 'recap-dateline';
+      recapBody.parentNode.insertBefore(dateline, recapBody);
+    }
+    dateline.textContent = latestDay.date + ' \u2014 ' + latestDay.label.toUpperCase();
+
+    const prevElim = DATA.daily_results.length > 1
+      ? DATA.daily_results[DATA.daily_results.length - 2].stats.eliminated
+      : 0;
+    const todayKilled = s.eliminated - prevElim;
+    const upsetCount = latestDay.upsets ? latestDay.upsets.length : 0;
+
     const templates = [
       () => {
-        const elim = latestDay.eliminations;
-        const names = elim.map(e => e.player).join(', ');
-        const upsetCount = latestDay.upsets.length;
-        return `<p>Day ${latestDay.day} was <span class="recap-highlight">absolutely ruthless</span>. ` +
-          `<strong>${s.eliminated - (DATA.daily_results.length > 1 ? DATA.daily_results[DATA.daily_results.length - 2].stats.eliminated : 0)}</strong> more survivors bit the dust, ` +
-          `leaving us with <span class="recap-alive">${s.survivors} souls still standing</span>.</p>` +
-          `<p style="margin-top:8px;"><span class="recap-dead">${s.deadliest_team.team}</span> (${s.deadliest_team.seed}-seed) was the grim reaper, ` +
-          `claiming ${s.deadliest_team.kills} victim${s.deadliest_team.kills > 1 ? 's' : ''}. ` +
-          (upsetCount > 0 ? `We saw <span class="recap-highlight">${upsetCount} upset${upsetCount > 1 ? 's' : ''}</span> that shook the bracket. ` : '') +
-          `Meanwhile, <span class="recap-highlight">${s.biggest_degen_pick.player}</span> picked ` +
-          `#${s.biggest_degen_pick.seed} <strong>${s.biggest_degen_pick.team}</strong> like an absolute degen ` +
-          `and <span class="recap-alive">${s.biggest_degen_pick.result === 'win' ? 'SURVIVED' : ''}</span>` +
-          `${s.biggest_degen_pick.result === 'loss' ? '<span class="recap-dead">got wrecked</span>' : ''}.</p>` +
-          `<p style="margin-top:8px;">The chalk crowd rallied behind <strong>${s.most_picked_today.team}</strong> ` +
-          `(${s.most_picked_today.count} picks) — ${s.most_picked_today.result === 'win' ? 'and they lived to fight another day.' : 'and they all went home crying.'}</p>`;
+        let out = `<p>${todayKilled} more people got sent home today. ` +
+          `We're down to <strong>${s.survivors}</strong> out of ${DATA.meta.total_players}, ` +
+          `and the $${DATA.meta.pot} pot is starting to look real interesting for whoever's left standing.</p>`;
+
+        out += `<p><strong>${s.deadliest_team.team}</strong> was the grim reaper today, ` +
+          `taking out ${s.deadliest_team.kills} player${s.deadliest_team.kills > 1 ? 's' : ''} who probably should have known better. ` +
+          (upsetCount > 0
+            ? `${upsetCount} upset${upsetCount > 1 ? 's' : ''} wrecked some brackets too, because March does what March does.`
+            : `No major upsets though, so if you got eliminated today you really have no excuse.`) +
+          `</p>`;
+
+        const degenResult = s.biggest_degen_pick.result === 'win'
+          ? `walked away alive like some kind of degenerate savant`
+          : `went down in flames, shocking absolutely nobody`;
+        out += `<p><strong>${s.biggest_degen_pick.player}</strong> picked ` +
+          `${s.biggest_degen_pick.seed}-seed <strong>${s.biggest_degen_pick.team}</strong> and ${degenResult}. ` +
+          `Meanwhile ${s.most_picked_today.count} people piled onto <strong>${s.most_picked_today.team}</strong> ` +
+          `because originality is dead` +
+          `${s.most_picked_today.result === 'win' ? ' \u2014 at least they survived.' : ' \u2014 and so are they.'}</p>`;
+        return out;
       },
       () => {
-        return `<p><span class="recap-highlight">${latestDay.label}</span> is in the books. ` +
-          `<strong>${s.survivors}</strong> of ${DATA.meta.total_players} remain, fighting for the <span class="recap-highlight">$${DATA.meta.pot} pot</span>.</p>` +
-          `<p style="margin-top:8px;">The most popular pick was <strong>${s.most_picked_today.team}</strong> ` +
-          `(grabbed by ${s.most_picked_today.count} players). ` +
-          `${s.most_picked_today.result === 'win' ? 'They coasted through.' : 'Oof. Mass extinction event.'} ` +
-          `<span class="recap-highlight">${s.degen_king.player}</span> went full degen with ` +
-          `a #${s.degen_king.seed} <strong>${s.degen_king.team}</strong> pick — absolute madlad behavior.</p>` +
-          `<p style="margin-top:8px;"><span class="recap-dead">${s.deadliest_team.team}</span> ended dreams today. ` +
-          `${s.chalk_king.player} played it safe with #${s.chalk_king.seed} ${s.chalk_king.team}. ` +
-          `Boring? Maybe. Still alive? Yes.</p>`;
+        const chalkLine = s.chalk_king
+          ? `<strong>${s.chalk_king.player}</strong> played it safer than a helmet in a bouncy castle with ` +
+            `${s.chalk_king.seed}-seed <strong>${s.chalk_king.team}</strong>. Boring? Absolutely. Still breathing? Also yes.`
+          : '';
+
+        let out = `<p>Another day, another bloodbath. <strong>${s.survivors}</strong> survivors remain and ` +
+          `${todayKilled} poor soul${todayKilled > 1 ? 's' : ''} just got vaporized. ` +
+          `The pot sits at <strong>$${DATA.meta.pot}</strong> and it's only Day ${latestDay.day}.</p>`;
+
+        out += `<p><strong>${s.most_picked_today.team}</strong> was the herd pick with ` +
+          `${s.most_picked_today.count} people riding that bandwagon. ` +
+          `${s.most_picked_today.result === 'win' ? 'They coasted.' : 'The wheels came off. Spectacularly.'} ` +
+          `On the other end of the sanity spectrum, <strong>${s.biggest_degen_pick.player}</strong> grabbed ` +
+          `${s.biggest_degen_pick.seed}-seed <strong>${s.biggest_degen_pick.team}</strong> because apparently ` +
+          `they have a death wish AND a gambling problem` +
+          `${s.biggest_degen_pick.result === 'win' ? ' \u2014 and somehow lived to tell about it.' : '.'}</p>`;
+
+        if (chalkLine) {
+          out += `<p>${chalkLine}</p>`;
+        }
+        return out;
       }
     ];
 
     const idx = latestDay.day % templates.length;
-    document.getElementById('recapBody').innerHTML = templates[idx]();
+    recapBody.innerHTML = templates[idx]();
   }
 
-  function renderTop3() {
+  function renderTopPlayers() {
+    const medals = ['\u{1F947}', '\u{1F948}', '\u{1F949}'];
     const alive = DATA.players
       .filter(p => p.status === 'alive')
       .sort((a, b) => b.degen_score - a.degen_score)
-      .slice(0, 3);
+      .slice(0, 10);
 
     const container = document.getElementById('top3');
-    container.innerHTML = alive.map((p, i) => `
-      <div class="top3-row" data-player="${esc(p.name)}">
-        <span class="top3-rank rank-${i + 1}">${i + 1}</span>
-        <span class="top3-name">${esc(p.name)}</span>
-        <span class="top3-score">${p.degen_score}<span class="top3-score-label">pts</span></span>
-      </div>
-    `).join('');
+    container.innerHTML = alive.map((p, i) => {
+      const rankDisplay = i < 3
+        ? `<span class="top3-rank rank-${i + 1}">${medals[i]}</span>`
+        : `<span class="top3-rank">${i + 1}</span>`;
+      return `
+        <div class="top3-row" data-player="${esc(p.name)}">
+          ${rankDisplay}
+          <span class="top3-name">${esc(p.name)}</span>
+          <span class="top3-score">${p.degen_score}<span class="top3-score-label">pts</span></span>
+        </div>
+      `;
+    }).join('') +
+    `<button class="view-full-board" data-goto="board">View Full Board \u2192</button>`;
 
     container.querySelectorAll('.top3-row').forEach(row => {
       row.addEventListener('click', () => {
         switchTab('players');
         setTimeout(() => selectPlayer(row.dataset.player), 100);
       });
+    });
+
+    container.querySelector('.view-full-board').addEventListener('click', () => {
+      switchTab('board');
     });
   }
 
@@ -196,8 +240,8 @@
       {
         emoji: '&#129297;',
         title: 'DEGEN OF THE DAY',
-        value: s.degen_king.player,
-        sub: '#' + s.degen_king.seed + ' ' + s.degen_king.team
+        value: s.biggest_degen_pick.player,
+        sub: '#' + s.biggest_degen_pick.seed + ' ' + s.biggest_degen_pick.team
       },
       {
         emoji: '&#128128;',
@@ -356,14 +400,42 @@
         if (expandedRow === name) {
           row.classList.remove('expanded');
           picksRow.classList.remove('visible');
+          // Remove any leftover death text
+          const oldDeath = picksRow.querySelector('.death-text');
+          if (oldDeath) oldDeath.remove();
           expandedRow = null;
         } else {
           // Collapse previous
           tbody.querySelectorAll('.table-row.expanded').forEach(r => r.classList.remove('expanded'));
-          tbody.querySelectorAll('.picks-row.visible').forEach(r => r.classList.remove('visible'));
+          tbody.querySelectorAll('.picks-row.visible').forEach(r => {
+            r.classList.remove('visible');
+            const dt = r.querySelector('.death-text');
+            if (dt) dt.remove();
+          });
           row.classList.add('expanded');
           picksRow.classList.add('visible');
           expandedRow = name;
+
+          // Death animation for eliminated players
+          const player = DATA.players.find(p => p.name === name);
+          if (player && player.status === 'eliminated') {
+            picksRow.classList.add('elimination-flash');
+            setTimeout(() => picksRow.classList.remove('elimination-flash'), 350);
+
+            const words = ['WASTED', 'FATALITY', 'ELIMINATED', 'RIP'];
+            const styles = ['death-wasted', 'death-fatality', 'death-eliminated', 'death-rip'];
+            const pick = Math.floor(Math.random() * words.length);
+
+            const deathEl = document.createElement('div');
+            deathEl.className = 'death-text ' + styles[pick];
+            deathEl.textContent = words[pick];
+            picksRow.insertBefore(deathEl, picksRow.querySelector('.picks-label'));
+
+            // Remove the text after animation completes (1.5s)
+            setTimeout(() => {
+              if (deathEl.parentNode) deathEl.remove();
+            }, 1500);
+          }
         }
       });
     });
@@ -703,6 +775,26 @@
     const prompt = document.getElementById('playerPrompt');
     card.style.display = 'block';
     prompt.style.display = 'none';
+
+    // Remove previous animation classes & overlays
+    card.classList.remove('player-card-death', 'player-card-alive');
+    const oldOverlay = card.querySelector('.player-card-death-overlay');
+    if (oldOverlay) oldOverlay.remove();
+
+    if (player.status === 'eliminated') {
+      // Death animation
+      card.classList.add('player-card-death');
+      const overlay = document.createElement('div');
+      overlay.className = 'player-card-death-overlay';
+      overlay.innerHTML = '<span>ELIMINATED</span>';
+      card.appendChild(overlay);
+      setTimeout(() => {
+        if (overlay.parentNode) overlay.remove();
+      }, 1300);
+    } else {
+      // Alive pulse
+      card.classList.add('player-card-alive');
+    }
 
     // Avatar
     document.getElementById('playerAvatar').textContent = player.name.charAt(0).toUpperCase();

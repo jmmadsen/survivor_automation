@@ -383,20 +383,20 @@
       "Creighton": { "times_used": 2, "alive_users_used": 1 }
     },
     "remaining_teams_by_player": {
-      "Degen Dave": 28,
-      "YOLO Yolanda": 28,
-      "Mad Dog Martinez": 28,
-      "SweatyPalms Pete": 28,
-      "Chaos Carl": 28,
-      "Lucky Lucy": 28,
-      "Gut Feeling Greg": 28,
-      "SafeSpace Steve": 28,
-      "Steady Eddie": 28,
-      "Vanilla Vince": 28,
-      "Basic Brenda": 28,
-      "Template Tim": 28,
-      "Copycat Cathy": 28,
-      "NPC Nancy": 28
+      "Degen Dave": ["Gonzaga","Houston","Duke","Tennessee","Auburn","Purdue","UConn","Iowa State","Kentucky","Baylor","Marquette","Arizona","Creighton","Kansas","Oregon State","Miami FL","Colorado State","Memphis","San Diego State","Texas","UCLA","North Carolina","Clemson","Drake","New Mexico State","Michigan State","Stetson","Oakland"],
+      "YOLO Yolanda": ["Gonzaga","Houston","Duke","Tennessee","Auburn","Purdue","UConn","Iowa State","Kentucky","Baylor","Marquette","Arizona","Creighton","Kansas","Miami FL","San Diego State","Texas","UCLA","North Carolina","Clemson","Drake","New Mexico State","Michigan State","Stetson","Oakland"],
+      "Mad Dog Martinez": ["Gonzaga","Houston","Duke","Tennessee","Auburn","Purdue","UConn","Iowa State","Kentucky","Baylor","Marquette","Arizona","Creighton","Kansas","Oregon State","San Diego State","Texas","UCLA","Clemson","Drake","New Mexico State","Michigan State","Stetson","Oakland"],
+      "SweatyPalms Pete": ["Gonzaga","Houston","Duke","Tennessee","Auburn","Purdue","UConn","Iowa State","Baylor","Marquette","Arizona","Creighton","Kansas","Oregon State","Miami FL","San Diego State","Texas","UCLA","North Carolina","Drake","New Mexico State","Michigan State"],
+      "Chaos Carl": ["Gonzaga","Houston","Duke","Tennessee","Auburn","Purdue","UConn","Iowa State","Kentucky","Marquette","Arizona","Creighton","Kansas","Oregon State","Miami FL","San Diego State","Texas","UCLA","North Carolina","Drake","New Mexico State","Michigan State"],
+      "Lucky Lucy": ["Gonzaga","Houston","Duke","Tennessee","Auburn","Purdue","UConn","Kentucky","Baylor","Marquette","Arizona","Creighton","Kansas","Oregon State","San Diego State","Texas","UCLA","North Carolina","Clemson","Drake","New Mexico State","Michigan State"],
+      "Gut Feeling Greg": ["Gonzaga","Houston","Duke","Tennessee","Auburn","Purdue","Iowa State","Kentucky","Baylor","Marquette","Arizona","Kansas","Oregon State","Miami FL","San Diego State","Texas","UCLA","North Carolina","Clemson","Drake","New Mexico State","Michigan State"],
+      "SafeSpace Steve": ["Gonzaga","Duke","Tennessee","Auburn","Purdue","UConn","Iowa State","Kentucky","Baylor","Marquette","Arizona","Creighton","Kansas","Oregon State","Miami FL","Texas","UCLA","North Carolina","Clemson","Drake","New Mexico State","Michigan State"],
+      "Steady Eddie": ["Gonzaga","Houston","Duke","Tennessee","Auburn","UConn","Iowa State","Kentucky","Baylor","Marquette","Arizona","Creighton","Oregon State","Miami FL","San Diego State","Texas","UCLA","North Carolina","Clemson","Drake","New Mexico State","Michigan State"],
+      "Vanilla Vince": ["Houston","Duke","Tennessee","Auburn","Purdue","UConn","Iowa State","Kentucky","Baylor","Arizona","Creighton","Kansas","Oregon State","Miami FL","San Diego State","Texas","UCLA","North Carolina","Clemson","Drake","New Mexico State","Michigan State"],
+      "Basic Brenda": ["Houston","Duke","Tennessee","Auburn","Purdue","UConn","Iowa State","Kentucky","Baylor","Arizona","Creighton","Kansas","Oregon State","Miami FL","San Diego State","Texas","UCLA","North Carolina","Clemson","Drake"],
+      "Template Tim": ["Gonzaga","Houston","Duke","Tennessee","Purdue","UConn","Iowa State","Kentucky","Baylor","Marquette","Arizona","Creighton","Oregon State","Miami FL","San Diego State","Texas","UCLA","North Carolina","Clemson","Drake"],
+      "Copycat Cathy": ["Gonzaga","Houston","Tennessee","Auburn","Purdue","UConn","Iowa State","Kentucky","Baylor","Marquette","Arizona","Creighton","Oregon State","Miami FL","San Diego State","Texas","UCLA","North Carolina","Clemson"],
+      "NPC Nancy": ["Houston","Duke","Tennessee","Auburn","Purdue","UConn","Iowa State","Kentucky","Baylor","Marquette","Creighton","Kansas","Oregon State","Miami FL","San Diego State","Texas","UCLA","North Carolina","Clemson","Drake","New Mexico State"]
     }
   }
 }
