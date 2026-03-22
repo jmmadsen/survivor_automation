@@ -1743,3 +1743,141 @@ body {
 .view-full-board:hover {
   opacity: 0.8;
 }
+
+/* ============================================
+   PICK FLOW (Sankey Visualization)
+   ============================================ */
+
+.pick-flow-card {
+  overflow: visible;
+}
+
+.pick-flow-search-wrapper {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.pf-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.pick-flow-search {
+  width: 100%;
+  padding: 10px 36px 10px 34px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: var(--font-body);
+  outline: none;
+  transition: all var(--transition-fast);
+  -webkit-appearance: none;
+}
+
+.pick-flow-search::placeholder {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.pick-flow-search:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-glow);
+}
+
+.pick-flow-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 8px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-fast);
+}
+
+.pick-flow-clear:hover {
+  color: var(--text-primary);
+}
+
+.pick-flow-container {
+  position: relative;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pick-flow-container svg {
+  display: block;
+  animation: pfEnter 0.6s var(--ease-out);
+}
+
+@keyframes pfEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Sankey elements */
+.pf-link {
+  transition: stroke-opacity 0.3s ease, stroke 0.3s ease;
+  cursor: pointer;
+}
+
+.pf-node {
+  transition: opacity 0.3s ease;
+  cursor: pointer;
+}
+
+.pf-label {
+  transition: opacity 0.3s ease, fill 0.3s ease;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Player trace animation */
+.pf-trace-line {
+  stroke-dasharray: 8 4;
+  animation: pfTraceDash 0.8s linear infinite;
+}
+
+@keyframes pfTraceDash {
+  to { stroke-dashoffset: -12; }
+}
+
+/* Tooltip */
+.pf-tooltip {
+  position: fixed;
+  z-index: 200;
+  background: var(--bg-card);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 12px;
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  max-width: 260px;
+  box-shadow: var(--shadow-lg);
+  line-height: 1.5;
+}
+
+.pf-tooltip.visible {
+  opacity: 1;
+}

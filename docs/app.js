@@ -16,6 +16,8 @@
   let seedDistChart = null;
   let homeSurvivalChart = null;
   let statsSurvivalChart = null;
+  let pickFlowHighlighted = null;
+  let pickFlowRendered = false;
 
   // ── Boot ──────────────────────────────────────
   document.addEventListener('DOMContentLoaded', init);
@@ -86,6 +88,11 @@
     setTimeout(() => {
       window.dispatchEvent(new Event('resize'));
     }, 50);
+
+    // Lazy render pick flow on first stats visit
+    if (tab === 'stats' && !pickFlowRendered) {
+      setTimeout(renderPickFlow, 100);
+    }
   }
 
   // ── HOME TAB ──────────────────────────────────
@@ -493,7 +500,6 @@
     renderSurvivalChart('statsSurvivalChart', true);
     renderOverlap();
     renderSeedDistribution(DATA.daily_results[DATA.daily_results.length - 1].day);
-    renderRisk();
   }
 
   function renderPickDistribution(dayNum) {
@@ -669,31 +675,345 @@
     }).join('');
   }
 
-  function renderRisk() {
-    const remaining = DATA.predictions.remaining_teams_by_player;
-    if (!remaining) return;
+  function pfColor(result) {
+    if (result === 'win') return '#22c55e';
+    if (result === 'loss') return '#ef4444';
+    return '#eab308';
+  }
 
-    const entries = Object.entries(remaining)
-      .map(([name, teams]) => ({ name, count: teams.length }))
-      .sort((a, b) => a.count - b.count)
-      .slice(0, 10);
+  function renderPickFlow() {
+    const container = document.getElementById('pickFlowContainer');
+    if (!container) return;
 
-    const maxCount = Math.max(...entries.map(e => e.count), 1);
-    const container = document.getElementById('riskList');
+    if (typeof d3 === 'undefined' || typeof d3.sankey !== 'function') {
+      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px 0;">Visualization loading\u2026</p>';
+      return;
+    }
 
-    container.innerHTML = entries.map(e => {
-      const pct = (e.count / maxCount) * 100;
-      const danger = e.count <= 5 ? 'risk-high' : e.count <= 15 ? 'risk-med' : 'risk-low';
-      return `
-        <div class="risk-item">
-          <span class="risk-name">${esc(e.name)}</span>
-          <div class="overlap-bar-bg">
-            <div class="risk-bar-fill ${danger}" style="width:${pct}%"></div>
-          </div>
-          <span class="risk-count">${e.count} teams left</span>
-        </div>
-      `;
-    }).join('');
+    // Need at least 2 days with picks to show flows
+    const playedDays = DATA.daily_results.filter(dr =>
+      DATA.players.some(p => p.picks.some(pk => pk.day === dr.day))
+    );
+    if (playedDays.length < 2) {
+      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px 0;">Pick Flow appears after Day 2.</p>';
+      return;
+    }
+
+    // Build nodes & links from player pick data
+    const nodeMap = {};
+    const linkMap = {};
+
+    DATA.players.forEach(p => {
+      const sorted = p.picks.slice().sort((a, b) => a.day - b.day);
+      sorted.forEach(pk => {
+        const nid = 'd' + pk.day + '-' + pk.team;
+        if (!nodeMap[nid]) {
+          nodeMap[nid] = { id: nid, day: pk.day, team: pk.team, seed: pk.seed, result: pk.result, pNames: [] };
+        }
+        nodeMap[nid].pNames.push(p.name);
+      });
+      for (let i = 0; i < sorted.length - 1; i++) {
+        const src = 'd' + sorted[i].day + '-' + sorted[i].team;
+        const tgt = 'd' + sorted[i + 1].day + '-' + sorted[i + 1].team;
+        const lid = src + '>' + tgt;
+        if (!linkMap[lid]) linkMap[lid] = { source: src, target: tgt, value: 0, pNames: [] };
+        linkMap[lid].value++;
+        linkMap[lid].pNames.push(p.name);
+      }
+    });
+
+    const nodes = Object.values(nodeMap);
+    const links = Object.values(linkMap);
+    if (nodes.length === 0 || links.length === 0) return;
+
+    // Dimensions — bail if container not visible yet
+    const width = container.clientWidth;
+    if (width === 0) return;
+    const maxPerDay = Math.max(...playedDays.map(d =>
+      nodes.filter(n => n.day === d.day).length
+    ));
+    const height = Math.max(360, Math.min(620, maxPerDay * 34 + 60));
+
+    container.innerHTML = '';
+
+    const svg = d3.select(container).append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .style('overflow', 'visible');
+
+    // Defs — glow filters
+    const defs = svg.append('defs');
+    const glow = defs.append('filter').attr('id', 'pf-glow')
+      .attr('x', '-50%').attr('y', '-50%').attr('width', '200%').attr('height', '200%');
+    glow.append('feGaussianBlur').attr('in', 'SourceGraphic').attr('stdDeviation', '3').attr('result', 'blur');
+    const gm = glow.append('feMerge');
+    gm.append('feMergeNode').attr('in', 'blur');
+    gm.append('feMergeNode').attr('in', 'SourceGraphic');
+
+    const goldGlow = defs.append('filter').attr('id', 'pf-gold-glow')
+      .attr('x', '-50%').attr('y', '-50%').attr('width', '200%').attr('height', '200%');
+    goldGlow.append('feGaussianBlur').attr('in', 'SourceGraphic').attr('stdDeviation', '5').attr('result', 'blur');
+    const ggm = goldGlow.append('feMerge');
+    ggm.append('feMergeNode').attr('in', 'blur');
+    ggm.append('feMergeNode').attr('in', 'SourceGraphic');
+
+    // Sankey layout
+    const margin = { top: 36, right: 90, bottom: 8, left: 8 };
+    const sankey = d3.sankey()
+      .nodeId(d => d.id)
+      .nodeAlign(d3.sankeyLeft)
+      .nodeWidth(14)
+      .nodePadding(5)
+      .nodeSort((a, b) => b.pNames.length - a.pNames.length)
+      .extent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]]);
+
+    const graph = sankey({
+      nodes: nodes.map(d => Object.assign({}, d)),
+      links: links.map(d => Object.assign({}, d))
+    });
+
+    // Day column labels & subtle guide lines
+    const dayPos = {};
+    graph.nodes.forEach(n => {
+      if (!dayPos[n.day]) dayPos[n.day] = (n.x0 + n.x1) / 2;
+    });
+    Object.keys(dayPos).forEach(day => {
+      const x = dayPos[day];
+      svg.append('text')
+        .attr('x', x).attr('y', 20)
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#64748b')
+        .attr('font-size', '11px')
+        .attr('font-family', "'Bebas Neue', Impact, sans-serif")
+        .attr('letter-spacing', '1.5px')
+        .text('DAY ' + day);
+      svg.append('line')
+        .attr('x1', x).attr('x2', x)
+        .attr('y1', margin.top - 4).attr('y2', height - margin.bottom)
+        .attr('stroke', 'rgba(148,163,184,0.05)')
+        .attr('stroke-width', 1);
+    });
+
+    // Draw links
+    svg.append('g').attr('class', 'pf-link-group')
+      .selectAll('path')
+      .data(graph.links)
+      .join('path')
+      .attr('class', 'pf-link')
+      .attr('d', d3.sankeyLinkHorizontal())
+      .attr('stroke', d => pfColor(d.source.result))
+      .attr('stroke-opacity', d => d.source.result === 'loss' ? 0.1 : 0.22)
+      .attr('stroke-width', d => Math.max(1.5, d.width))
+      .attr('fill', 'none')
+      .style('mix-blend-mode', 'screen')
+      .on('mouseenter', function (event, d) {
+        if (pickFlowHighlighted) return;
+        d3.select(this).attr('stroke-opacity', 0.55);
+        showPfTooltip(event,
+          '<strong>' + d.value + ' player' + (d.value !== 1 ? 's' : '') + '</strong><br>' +
+          esc(d.source.team) + ' \u2192 ' + esc(d.target.team));
+      })
+      .on('mousemove', function (event) { movePfTooltip(event); })
+      .on('mouseleave', function (event, d) {
+        if (pickFlowHighlighted) return;
+        d3.select(this).attr('stroke-opacity', d.source.result === 'loss' ? 0.1 : 0.22);
+        hidePfTooltip();
+      });
+
+    // Draw nodes
+    svg.append('g').attr('class', 'pf-node-group')
+      .selectAll('rect')
+      .data(graph.nodes)
+      .join('rect')
+      .attr('class', 'pf-node')
+      .attr('x', d => d.x0)
+      .attr('y', d => d.y0)
+      .attr('width', d => d.x1 - d.x0)
+      .attr('height', d => Math.max(2, d.y1 - d.y0))
+      .attr('fill', d => pfColor(d.result))
+      .attr('opacity', d => d.result === 'loss' ? 0.45 : 0.85)
+      .attr('rx', 3)
+      .on('mouseenter', function (event, d) {
+        if (pickFlowHighlighted) return;
+        d3.select(this).attr('opacity', 1).attr('filter', 'url(#pf-glow)');
+        d3.selectAll('.pf-link').attr('stroke-opacity', l =>
+          (l.source.id === d.id || l.target.id === d.id) ? 0.55
+            : (l.source.result === 'loss' ? 0.04 : 0.06));
+        const list = d.pNames.slice(0, 10).map(esc).join(', ') +
+          (d.pNames.length > 10 ? ' +' + (d.pNames.length - 10) + ' more' : '');
+        showPfTooltip(event,
+          '<strong>' + esc(d.team) + '</strong> <span style="color:#64748b">#' + d.seed + '</span><br>' +
+          d.pNames.length + ' pick' + (d.pNames.length !== 1 ? 's' : '') + ' \u00b7 ' + d.result.toUpperCase() + '<br>' +
+          '<span style="color:#94a3b8;font-size:11px">' + list + '</span>');
+      })
+      .on('mousemove', function (event) { movePfTooltip(event); })
+      .on('mouseleave', function (event, d) {
+        if (pickFlowHighlighted) return;
+        d3.select(this).attr('opacity', d.result === 'loss' ? 0.45 : 0.85).attr('filter', null);
+        d3.selectAll('.pf-link').attr('stroke-opacity', l =>
+          l.source.result === 'loss' ? 0.1 : 0.22);
+        hidePfTooltip();
+      });
+
+    // Node labels — only for nodes tall enough
+    svg.append('g').attr('class', 'pf-label-group')
+      .selectAll('text')
+      .data(graph.nodes.filter(d => (d.y1 - d.y0) >= 14))
+      .join('text')
+      .attr('class', 'pf-label')
+      .attr('x', d => d.x1 + 6)
+      .attr('y', d => (d.y0 + d.y1) / 2)
+      .attr('dy', '0.35em')
+      .attr('fill', '#94a3b8')
+      .attr('font-size', '10px')
+      .attr('font-family', "'Barlow Semi Condensed', sans-serif")
+      .text(d => {
+        const name = d.team.length > 12 ? d.team.substring(0, 11) + '\u2026' : d.team;
+        return name + ' (' + d.pNames.length + ')';
+      });
+
+    // Tooltip element
+    if (!document.getElementById('pfTooltip')) {
+      const tt = document.createElement('div');
+      tt.id = 'pfTooltip';
+      tt.className = 'pf-tooltip';
+      document.body.appendChild(tt);
+    }
+
+    pickFlowRendered = true;
+    setupPickFlowSearch();
+  }
+
+  function showPfTooltip(event, html) {
+    const tt = document.getElementById('pfTooltip');
+    if (!tt) return;
+    tt.innerHTML = html;
+    tt.classList.add('visible');
+    movePfTooltip(event);
+  }
+
+  function movePfTooltip(event) {
+    const tt = document.getElementById('pfTooltip');
+    if (!tt) return;
+    tt.style.left = (event.clientX + 14) + 'px';
+    tt.style.top = (event.clientY - 14) + 'px';
+  }
+
+  function hidePfTooltip() {
+    const tt = document.getElementById('pfTooltip');
+    if (tt) tt.classList.remove('visible');
+  }
+
+  function setupPickFlowSearch() {
+    const input = document.getElementById('pickFlowSearch');
+    const dropdown = document.getElementById('pickFlowDropdown');
+    const clearBtn = document.getElementById('pickFlowClear');
+    if (!input || !dropdown || !clearBtn) return;
+    if (input._pfBound) return;
+    input._pfBound = true;
+
+    input.addEventListener('input', () => {
+      const q = input.value.trim().toLowerCase();
+      if (q.length < 1) {
+        dropdown.classList.remove('visible');
+        clearBtn.style.display = 'none';
+        clearPickFlowHighlight();
+        return;
+      }
+      const matches = DATA.players.filter(p => p.name.toLowerCase().includes(q)).slice(0, 6);
+      if (matches.length === 0) { dropdown.classList.remove('visible'); return; }
+      dropdown.innerHTML = matches.map(p =>
+        '<div class="search-result-item" data-player="' + esc(p.name) + '">' +
+        '<span class="search-result-name">' + esc(p.name) + '</span>' +
+        '<span class="search-result-meta">' + (p.status === 'alive' ? '&#128994;' : '&#128308;') +
+        ' #' + p.rank + '</span></div>'
+      ).join('');
+      dropdown.classList.add('visible');
+      dropdown.querySelectorAll('.search-result-item').forEach(item => {
+        item.addEventListener('click', () => {
+          input.value = item.dataset.player;
+          dropdown.classList.remove('visible');
+          clearBtn.style.display = 'flex';
+          highlightPickFlowPlayer(item.dataset.player);
+        });
+      });
+    });
+
+    clearBtn.addEventListener('click', () => {
+      input.value = '';
+      clearBtn.style.display = 'none';
+      clearPickFlowHighlight();
+      input.focus();
+    });
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.pick-flow-search-wrapper')) {
+        dropdown.classList.remove('visible');
+      }
+    });
+  }
+
+  function highlightPickFlowPlayer(name) {
+    const player = DATA.players.find(p => p.name === name);
+    if (!player) return;
+    pickFlowHighlighted = name;
+    hidePfTooltip();
+
+    const nodeIds = new Set(player.picks.map(pk => 'd' + pk.day + '-' + pk.team));
+    const linkKeys = new Set();
+    const sorted = player.picks.slice().sort((a, b) => a.day - b.day);
+    for (let i = 0; i < sorted.length - 1; i++) {
+      linkKeys.add('d' + sorted[i].day + '-' + sorted[i].team + '>' + 'd' + sorted[i + 1].day + '-' + sorted[i + 1].team);
+    }
+
+    // Fade & recolor links
+    d3.selectAll('.pf-link')
+      .attr('stroke', d => linkKeys.has(d.source.id + '>' + d.target.id) ? '#fbbf24' : pfColor(d.source.result))
+      .attr('stroke-opacity', d => linkKeys.has(d.source.id + '>' + d.target.id) ? 0.85 : 0.03);
+
+    // Animated gold trace line on player's path
+    d3.selectAll('.pf-trace-line').remove();
+    d3.selectAll('.pf-link')
+      .filter(d => linkKeys.has(d.source.id + '>' + d.target.id))
+      .each(function () {
+        d3.select(this.parentNode).append('path')
+          .attr('class', 'pf-trace-line')
+          .attr('d', d3.select(this).attr('d'))
+          .attr('stroke', '#fbbf24')
+          .attr('stroke-width', 2.5)
+          .attr('stroke-opacity', 0.9)
+          .attr('fill', 'none')
+          .attr('filter', 'url(#pf-gold-glow)')
+          .attr('pointer-events', 'none');
+      });
+
+    // Fade & highlight nodes
+    d3.selectAll('.pf-node')
+      .attr('opacity', d => nodeIds.has(d.id) ? 1 : 0.06)
+      .attr('filter', d => nodeIds.has(d.id) ? 'url(#pf-gold-glow)' : null)
+      .attr('stroke', d => nodeIds.has(d.id) ? '#fbbf24' : 'none')
+      .attr('stroke-width', d => nodeIds.has(d.id) ? 1.5 : 0);
+
+    // Fade & highlight labels
+    d3.selectAll('.pf-label')
+      .attr('opacity', d => nodeIds.has(d.id) ? 1 : 0.06)
+      .attr('fill', d => nodeIds.has(d.id) ? '#fbbf24' : '#94a3b8');
+  }
+
+  function clearPickFlowHighlight() {
+    pickFlowHighlighted = null;
+    d3.selectAll('.pf-trace-line').remove();
+    d3.selectAll('.pf-link')
+      .attr('stroke', d => pfColor(d.source.result))
+      .attr('stroke-opacity', d => d.source.result === 'loss' ? 0.1 : 0.22);
+    d3.selectAll('.pf-node')
+      .attr('opacity', d => d.result === 'loss' ? 0.45 : 0.85)
+      .attr('filter', null)
+      .attr('stroke', 'none')
+      .attr('stroke-width', 0);
+    d3.selectAll('.pf-label')
+      .attr('opacity', 1)
+      .attr('fill', '#94a3b8');
   }
 
   function renderSeedDistribution(dayNum) {

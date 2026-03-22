@@ -8,7 +8,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet" href="styles.css?v=7">
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
+  <link rel="stylesheet" href="styles.css?v=8">
 </head>
 <body>
   <!-- Desktop top nav -->
@@ -204,16 +206,24 @@
         </div>
       </div>
 
-      <!-- Predictions & Risk -->
-      <div class="card">
+      <!-- Pick Flow Sankey -->
+      <div class="card pick-flow-card">
         <div class="card-header">
-          <span class="card-label">DANGER ZONE</span>
-          <span class="card-sub">Players with fewest remaining team options</span>
+          <span class="card-label">PICK FLOW</span>
+          <span class="card-sub">How the pool's picks flow through the tournament</span>
         </div>
-        <div class="risk-list" id="riskList">
-          <!-- Filled by JS -->
+        <div class="pick-flow-search-wrapper">
+          <svg class="pf-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <input type="text" class="pick-flow-search" id="pickFlowSearch" placeholder="Trace a player's path..." autocomplete="off">
+          <button class="pick-flow-clear" id="pickFlowClear">&times;</button>
+          <div class="search-dropdown" id="pickFlowDropdown"></div>
         </div>
-        <p class="risk-disclaimer">For entertainment only. Not actual predictions.</p>
+        <div class="pick-flow-container" id="pickFlowContainer">
+          <!-- Filled by D3.js -->
+        </div>
       </div>
     </section>
 
@@ -317,6 +327,6 @@
     </button>
   </nav>
 
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
