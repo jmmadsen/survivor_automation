@@ -1,5 +1,5 @@
 {
-  "exported_at": "2026-03-22T15:05:03.848993+00:00",
+  "exported_at": "2026-03-22T15:17:19.408426+00:00",
   "meta": {
     "pool_name": "Temple's Madness Survivor Pool 2026",
     "season": 2026,
@@ -10,7 +10,7 @@
     "current_day": 4,
     "total_days": 10,
     "pot": 2750,
-    "last_updated": "2026-03-22T15:05:03.848993+00:00"
+    "last_updated": "2026-03-22T15:17:19.408426+00:00"
   },
   "team_seeds": {
     "Akron": 12,
@@ -390,31 +390,14 @@
       "date": "2026-03-22",
       "label": "Round of 32 - Day 2",
       "status": "pending",
-      "available_teams": [
-        "Alabama",
-        "Arizona",
-        "Florida",
-        "Iowa",
-        "Iowa State",
-        "Kansas",
-        "Kentucky",
-        "Miami",
-        "Purdue",
-        "St. John's",
-        "Tennessee",
-        "Texas Tech",
-        "UCLA",
-        "UConn",
-        "Utah State",
-        "Virginia"
-      ],
+      "available_teams": [],
       "winners": [],
       "losers": [],
       "upsets": [],
       "stats": {
         "most_picked_today": {
           "team": "Purdue",
-          "count": 15,
+          "count": 17,
           "result": "pending"
         },
         "biggest_degen_pick": {
@@ -558,6 +541,12 @@
           "team": "Arkansas",
           "seed": 4,
           "result": "win"
+        },
+        {
+          "day": 4,
+          "team": "St. John's",
+          "seed": 5,
+          "result": "pending"
         }
       ]
     },
@@ -1200,6 +1189,12 @@
           "team": "Houston",
           "seed": 2,
           "result": "win"
+        },
+        {
+          "day": 4,
+          "team": "Iowa State",
+          "seed": 2,
+          "result": "pending"
         }
       ]
     },
@@ -1316,6 +1311,12 @@
           "team": "Illinois",
           "seed": 3,
           "result": "win"
+        },
+        {
+          "day": 4,
+          "team": "Purdue",
+          "seed": 2,
+          "result": "pending"
         }
       ]
     },
@@ -1406,6 +1407,12 @@
           "team": "Arkansas",
           "seed": 4,
           "result": "win"
+        },
+        {
+          "day": 4,
+          "team": "UConn",
+          "seed": 2,
+          "result": "pending"
         }
       ]
     },
@@ -2432,6 +2439,12 @@
           "team": "Illinois",
           "seed": 3,
           "result": "win"
+        },
+        {
+          "day": 4,
+          "team": "St. John's",
+          "seed": 5,
+          "result": "pending"
         }
       ]
     },
@@ -2766,6 +2779,12 @@
           "team": "Illinois",
           "seed": 3,
           "result": "win"
+        },
+        {
+          "day": 4,
+          "team": "Iowa State",
+          "seed": 2,
+          "result": "pending"
         }
       ]
     },
@@ -2940,6 +2959,12 @@
           "team": "Michigan",
           "seed": 1,
           "result": "win"
+        },
+        {
+          "day": 4,
+          "team": "Purdue",
+          "seed": 2,
+          "result": "pending"
         }
       ]
     },
