@@ -228,7 +228,7 @@ def cmd_run_all(args, private_client: SheetsClient) -> None:
 
 
 def cmd_export_site(args, private_client: SheetsClient) -> None:
-    export_site_data(private_client, args.output)
+    export_site_data(private_client, args.output, through_day=args.through_day)
 
 
 def main() -> None:
@@ -320,6 +320,13 @@ def main() -> None:
     p_export.add_argument(
         "--output", default="docs/data/pool.json",
         help="Output path for the JSON file (default: docs/data/pool.json)",
+    )
+    p_export.add_argument(
+        "--through-day",
+        help="Only export data through this game day (e.g. '3/21'). "
+             "Picks and pending days after this are excluded — useful for "
+             "updating the site with yesterday's results without revealing "
+             "today's picks.",
     )
 
     args = parser.parse_args()

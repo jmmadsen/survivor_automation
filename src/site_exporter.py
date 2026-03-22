@@ -66,12 +66,19 @@ def _is_pick_after_elimination(player: PlayerRecord, game_day: str) -> bool:
 def export_site_data(
     client: SheetsClient,
     output_path: str = "docs/data/pool.json",
+    through_day: str | None = None,
 ) -> None:
     """
     Build and write the JSON snapshot consumed by the GitHub Pages frontend.
 
     Reads Master, Teams & Results, and Team Seeds sheets via existing helpers,
     computes stats / upsets / predictions, and writes a single JSON file.
+
+    Args:
+        through_day: Optional game-day string (e.g. "3/21"). When set, the
+            export will only include data through that day — any picks or
+            pending days after it are excluded.  This lets you update the
+            site with yesterday's results without leaking today's picks.
     """
 
     # ---- 1. Gather data from sheets ----------------------------------------
@@ -80,8 +87,21 @@ def export_site_data(
     master_data = _read_master(client)
     days_with_results = [day for day in GAME_DAYS if losers_by_day.get(day)]
 
+    # Apply --through-day cap: drop everything after the cutoff day
+    cutoff_idx = None
+    if through_day:
+        if through_day not in GAME_DAYS:
+            raise ValueError(
+                f"--through-day '{through_day}' is not a valid game day. "
+                f"Valid days: {', '.join(GAME_DAYS)}"
+            )
+        cutoff_idx = GAME_DAYS.index(through_day)
+        days_with_results = [d for d in days_with_results
+                             if GAME_DAYS.index(d) <= cutoff_idx]
+        logger.info(f"--through-day {through_day}: capping export at day index {cutoff_idx + 1}")
+
     # Detect pending days: days ≤ today with picks submitted but no results yet
-    pending_days = _detect_pending_days(master_data, days_with_results)
+    pending_days = _detect_pending_days(master_data, days_with_results, cutoff_idx)
 
     # All days to show on the dashboard (completed + pending)
     all_display_days = days_with_results + pending_days
@@ -101,7 +121,9 @@ def export_site_data(
     )
 
     # ---- 3. Build players array (new schema) --------------------------------
-    players_json = _build_players_json(players_sorted, days_with_results, seeds_by_team)
+    players_json = _build_players_json(
+        players_sorted, days_with_results, seeds_by_team, cutoff_idx,
+    )
 
     # ---- 4. Compute predictions & risk data --------------------------------
     predictions = _compute_predictions(players_sorted, seeds_by_team, days_with_results, losers_by_day)
@@ -124,9 +146,10 @@ def export_site_data(
 
     alive_count = sum(1 for p in players_sorted if p.still_alive)
     pending_info = f", {len(pending_days)} pending" if pending_days else ""
+    cap_info = f" (capped at {through_day})" if through_day else ""
     print(f"Exported site data to {output_path} "
           f"({len(players_sorted)} players, {alive_count} alive, "
-          f"{len(days_with_results)} completed days{pending_info})")
+          f"{len(days_with_results)} completed days{pending_info}{cap_info})")
 
 
 # ---------------------------------------------------------------------------
@@ -136,16 +159,22 @@ def export_site_data(
 def _detect_pending_days(
     master_data: list[dict],
     days_with_results: list[str],
+    cutoff_idx: int | None = None,
 ) -> list[str]:
     """
     Find game days that are pending: ≤ today, have picks submitted, but no
     results yet.  Returns them in GAME_DAYS order.
+
+    When cutoff_idx is set, only considers days up to that index in GAME_DAYS.
     """
     completed_set = set(days_with_results)
     today_iso = datetime.now().strftime("%Y-%m-%d")
 
     pending = []
-    for day in GAME_DAYS:
+    for i, day in enumerate(GAME_DAYS):
+        # Respect the --through-day cap
+        if cutoff_idx is not None and i > cutoff_idx:
+            break
         iso = GAME_DAY_ISO_DATES.get(day, "")
         if not iso or iso > today_iso:
             break  # future day — stop here
@@ -438,6 +467,7 @@ def _build_players_json(
     players: list[PlayerRecord],
     days_with_results: list[str],
     seeds_by_team: dict[str, int],
+    cutoff_idx: int | None = None,
 ) -> list[dict]:
     """
     Build the players array for JSON output.
@@ -446,13 +476,18 @@ def _build_players_json(
       name, status ("alive"/"eliminated"), rank (int), degen_score,
       eliminated_day (int, only if eliminated),
       picks: [{day (int), team, seed, result ("win"/"loss"/"pending")}]
+
+    When cutoff_idx is set, only includes picks up through that day index.
     """
     result = []
     days_with_results_set = set(days_with_results)
 
     for rank_i, p in enumerate(players):
         picks_array = []
-        for day in GAME_DAYS:
+        for i, day in enumerate(GAME_DAYS):
+            # Respect the --through-day cap
+            if cutoff_idx is not None and i > cutoff_idx:
+                break
             team = p.picks.get(day)
             if not _is_valid_pick(team):
                 continue  # skip blank / "No Pick" entries
